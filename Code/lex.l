@@ -2,33 +2,22 @@
 
 %{
     #include "string.h"
-    #define MAX_STRLEN 0xfffff
-    #define MAX_SYMBOLNUM 0xfffff
-    typedef struct SymbolItem {
-        char *sym_str;
-        int sym_type;
-    } _SI;
-    typedef enum SymbolType{
-        ID, //Identifier
-        KEY,    //Reserved Keyword    
-        INT, FLOAT, STRING, CHAR,
-        TYPE,
-        DOT, COMMA, QUESTION, SEMI,
-        ASSIGNOP,
-        PLUS, MINUS, STAR, DIV, AND, OR, NOT,
-        EQUAL, LESS, BIGGER,  LESSEQUAL, BIGGEREQUAL, NOTEQUAL,
-        LP, RP, LB, RB, LC, RC,
-        DEFINE, STRUCT, CASE, IF, ELSE, WHILE 
-    } _ST;
-    void add_sym_seq(char *p_str, int sym_type);
-    char *add_str_tbl(char *p_str);
-    int lines=0;
-    int symbols=0;
-    int p_str_tbl=0;
-    int strbuff;
-    char string_table[MAX_STRLEN];
-    _SI symbol_sequence[MAX_SYMBOLNUM];
+    #include "syntax.tab.h"
+    #include "kernel.h"
+  //  #include "syntax.tab.h"
+
+    int yycolumn=1;
+    YYLTYPE yylloc;
+    extern int errorrec;
+    #define YY_USER_ACTION {\
+        yylloc.first_line=yylloc.last_line=yylineno;\
+        yylloc.first_column=yycolumn;\
+        yylloc.last_column=yycolumn+yyleng-1;\
+        yycolumn+=yyleng;\
+    }
 %}
+
+%option yylineno
 
 DOT "."
 COMMA ","
@@ -55,7 +44,6 @@ LB "["
 RB "]"
 LC "{"
 RC "}"
-DEFINE "define"
 STRUCT "struct"
 CASE "case"
 SWITCH "switch"
@@ -68,12 +56,15 @@ RELOP {BIGGER}|{BIGGEREQUAL}|{EQUAL}|{LESS}|{LESSEQUAL}|{NOTEQUAL}
 DIGITS_10_NLZ 0|([1-9][0-9]*)
 ALPHABET [a-zA-Z]
 DIGITS_10 [0-9]+
-DIGITS_8 0|([1-7][0-7]*)
+DIGITS_8 0([0-7]*)
+DIGITS_16 0(X|x)([0-9ABCDEFabcdef]*)
 BLANKS [ \r\n\t]
 
 
 FLOAT [+-]?{DIGITS_10_NLZ}({DOT}{DIGITS_10})?([eE]([+-]?){DIGITS_10_NLZ})?
 INT [+-]?{DIGITS_10_NLZ}
+INT_8 [+-]?{DIGITS_8}
+INT_16 [+-]?{DIGITS_16}
 
 CHAR \'[^\'\n]\'
 ID ({ALPHABET}|_)({ALPHABET}|_|{DIGITS_10})*
@@ -81,84 +72,82 @@ COMMENT1 "//"[^\r\n]*
 
 %%
 
-{DOT} { printf("DOT "); add_sym_seq(NULL,DOT); };
-{COMMA} { printf("COMMA "); add_sym_seq(NULL,COMMA); };
-{QUESTION} { printf("QUESTION "); add_sym_seq(NULL,QUESTION); };
-{SEMI} { printf("SEMI "); add_sym_seq(NULL,SEMI); };
-{ASSIGNOP} { printf("ASSIGNOP "); add_sym_seq(NULL,ASSIGNOP); };
-{PLUS} { printf("PLUS "); add_sym_seq(NULL,PLUS); };
-{MINUS} { printf("MINUS "); add_sym_seq(NULL,MINUS); };
-{STAR} { printf("STAR "); add_sym_seq(NULL,STAR); };
-{DIV} { printf("DIV "); add_sym_seq(NULL,DIV); };
-{AND} { printf("AND "); add_sym_seq(NULL,AND); };
-{OR} { printf("OR "); add_sym_seq(NULL,OR); };
-{NOT} { printf("NOT "); add_sym_seq(NULL,NOT); };
-{EQUAL} { printf("EQUAL "); add_sym_seq(NULL,EQUAL); };
-{LESS} { printf("LESS "); add_sym_seq(NULL,LESS); };
-{BIGGER} { printf("BIGGER "); add_sym_seq(NULL,BIGGER); };
-{LESSEQUAL} { printf("LESSEQUAL "); add_sym_seq(NULL,LESSEQUAL); };
-{BIGGEREQUAL} { printf("BIGGEREQUAL "); add_sym_seq(NULL,BIGGEREQUAL); };
-{NOTEQUAL} { printf("NOTEQUAL "); add_sym_seq(NULL,NOTEQUAL); };
-{LP} { printf("LP "); add_sym_seq(NULL,LP); };
-{RP} { printf("RP "); add_sym_seq(NULL,RP); };
-{LB} { printf("LB "); add_sym_seq(NULL,LB); };
-{RB} { printf("RB "); add_sym_seq(NULL,RB); };
-{LC} { printf("LC "); add_sym_seq(NULL,LC); };
-{RC} { printf("RC "); add_sym_seq(NULL,RC); };
-{DEFINE} { printf("DEFINE "); add_sym_seq(NULL,DEFINE); };
-{STRUCT} { printf("STRUCT "); add_sym_seq(NULL,STRUCT); };
-{CASE} { printf("CASE "); add_sym_seq(NULL,CASE); };
-{IF} { printf("IF "); add_sym_seq(NULL,IF); };
-{ELSE} { printf("ELSE "); add_sym_seq(NULL,ELSE); };
-{WHILE} { printf("WHILE "); add_sym_seq(NULL,WHILE); };
+{DOT} { yylval.a=add_sym_seq("DOT",DOT); return DOT; };
+{COMMA} { yylval.a=add_sym_seq("COMMA",COMMA); return COMMA; };
+{QUESTION} { yylval.a=add_sym_seq("QUESTION",QUESTION); return QUESTION; };
+{SEMI} { yylval.a=add_sym_seq("SMEI",SEMI); return SEMI; };
+{ASSIGNOP} { yylval.a=add_sym_seq("ASSIGNOP",ASSIGNOP); return ASSIGNOP; };
+{PLUS} { yylval.a=add_sym_seq("PLUS",PLUS); return PLUS; };
+{MINUS} { yylval.a=add_sym_seq("MINUS",MINUS); return MINUS; };
+{STAR} { yylval.a=add_sym_seq("STAR",STAR); return STAR; };
+{DIV} { yylval.a=add_sym_seq("DIV",DIV); return DIV; };
+{AND} { yylval.a=add_sym_seq("AND",AND); return AND; };
+{OR} { yylval.a=add_sym_seq("OR",OR); return OR; };
+{NOT} { yylval.a=add_sym_seq("NOT",NOT); return NOT; };
+{EQUAL} { yylval.a=add_sym_seq("EQUAL",EQUAL); return EQUAL; };
+{LESS} { yylval.a=add_sym_seq("LESS",LESS); return LESS; };
+{BIGGER} { yylval.a=add_sym_seq("BIGGER",BIGGER); return BIGGER; };
+{LESSEQUAL} { yylval.a=add_sym_seq("LESSEQUAL",LESSEQUAL); return LESSEQUAL; };
+{BIGGEREQUAL} { yylval.a=add_sym_seq("BIGGEREQUAL",BIGGEREQUAL); return BIGGEREQUAL; };
+{NOTEQUAL} { yylval.a=add_sym_seq("NOTEQUAL",NOTEQUAL); return NOTEQUAL; };
+{LP} { yylval.a=add_sym_seq("LP",LP); return LP; };
+{RP} { yylval.a=add_sym_seq("RP",RP); return RP; };
+{LB} { yylval.a=add_sym_seq("LB",LB); return LB; };
+{RB} { yylval.a=add_sym_seq("RB",RB); return RB; };
+{LC} { yylval.a=add_sym_seq("LC",LC); return LC; };
+{RC} { yylval.a=add_sym_seq("RC",RC); return RC; };
+{STRUCT} { yylval.a=add_sym_seq("STRUCT",STRUCT); return STRUCT; };
+{CASE} { yylval.a=add_sym_seq("CASE",CASE); return CASE; };
+{IF} { yylval.a=add_sym_seq("IF",IF); return IF; };
+{ELSE} { yylval.a=add_sym_seq("ELSE",ELSE); return ELSE; };
+{WHILE} { yylval.a=add_sym_seq("WHILE",WHILE); return WHILE; };
 
-{TYPE} { printf("TYPE "); add_sym_seq(add_str_tbl(yytext),TYPE); }; 
-{ID} { printf("ID "); add_sym_seq(add_str_tbl(yytext),ID); }; 
+{TYPE} { yylval.a=add_sym_seqx("TYPE",TYPE,add_str_tbl(yytext)); return TYPE; }; 
+{ID} { yylval.a=add_sym_seqx("ID",ID,add_str_tbl(yytext)); return ID; }; 
 
-{INT} { printf("INT "); add_sym_seq(add_str_tbl(yytext),INT); };
-{FLOAT} { printf("FLOAT "); add_sym_seq(add_str_tbl(yytext),FLOAT); };
+{INT} { yylval.a=add_sym_seqx("INT",INT,add_str_tbl(yytext)); sscanf(yytext,"%d",&yylval.a->value.ival); return INT; };
+{INT_8} { yylval.a=add_sym_seqx("INT_8",INT_8,add_str_tbl(yytext)); sscanf(yytext,"%o",&yylval.a->value.ival); return INT_8; };
+{INT_16} { yylval.a=add_sym_seqx("INT_16",INT_16,add_str_tbl(yytext)); sscanf(yytext,"%x",&yylval.a->value.ival); return INT_16; };
+{FLOAT} { yylval.a=add_sym_seqx("FLOAT",FLOAT,add_str_tbl(yytext)); sscanf(yytext,"%f",&yylval.a->value.fval); return FLOAT; };
 
 \" { strbuff=p_str_tbl; BEGIN(STRING); };
 <STRING>\\. { strcpy(string_table+strbuff,yytext); strbuff+=strlen(yytext); };
 <STRING>\" { 
             string_table[strbuff++]='\0'; 
             symbol_sequence[symbols].sym_type=STRING; 
-            symbol_sequence[symbols].sym_str=string_table+p_str_tbl;
+            symbol_sequence[symbols].sym_str="STRING";
+            symbol_sequence[symbols].value.pstr=string_table+p_str_tbl;
             p_str_tbl=strbuff;
             symbols++; 
             BEGIN(INITIAL);
+            return STRING;
 };
-<STRING>[^\r\n"] { strcpy(string_table+strbuff,yytext); strbuff+=strlen(yytext); };
+<STRING>[^\r\n"] { strcpy(string_table+strbuff,yytext); strbuff+=strlen(yytext);  };
 
-{CHAR} { printf("CHAR "); add_sym_seq(add_str_tbl(yytext),CHAR); }; 
+{CHAR} { yylval.a=add_sym_seqx("CHAR",CHAR,add_str_tbl(yytext)); return CHAR; }; 
 
-{COMMENT1} { printf("COMMENT1 "); };
+{COMMENT1} { printf("line %d :COMMENT1 \n",yylineno); };
 
-\/\* { printf("COMMENT2"); BEGIN(COMMENT); };
+\/\* { printf("line %d : COMMENT2 \n",yylineno); BEGIN(COMMENT); };
 <COMMENT>\*\/ { BEGIN(INITIAL); };
 <COMMENT>.|\n { };
 
-"\n" { printf("\n%d:    ",++lines); }
-{BLANKS} { printf("%s",yytext); }
+"\n" { }; 
+{BLANKS} { }; 
 
-. { printf("\n****Error Type A occured at line %d, dealing lexema %s\n",lines,yytext); }
+. { printf("\n****Error Type A occured at line %d, dealing lexema %s\n",yylineno,yytext); errorrec=1; return ERROR; }
+
 
 %%
 
-void add_sym_seq(char *p_str, int sym_type)
+//printf("\n%d:    ",++lines); }
+//printf("%s",yytext); }
+int yywrap()
 {
-    symbol_sequence[symbols].sym_str=p_str;
-    symbol_sequence[symbols].sym_type=sym_type;
-    symbols++;
+    _isend=true;
 }
 
-char *add_str_tbl(char *p_str){
-    strcpy(string_table+p_str_tbl,p_str);
-    int ret_value=p_str_tbl;
-    p_str_tbl+=strlen(p_str)+1;
-    return string_table+ret_value;
-}
-
+/*
 
 int main(int argc, char** argv) {
     if (argc > 1) {
@@ -169,7 +158,8 @@ int main(int argc, char** argv) {
     }
     printf("FileName : %s\n",argv[1]);
     printf("0:  ");
-    yylex();
+    _isend=false;
+    while (!_isend && yylex()!=ERROR);
     printf("\n-------------------\n");
     return 0;
-}
+}*/

@@ -1,88 +1,218 @@
-FileName : ./lexical_gramma_testcase/testcase01.in
-0:  TYPE  ID LP RP 
-1:    LC 
-2:        TYPE  ID  ASSIGNOP  INT SEMI 
-3:        TYPE  ID  ASSIGNOP  
-****Error Type A occured at line 3, dealing lexema ~
-ID SEMI 
-4:    RC 
-5:    
--------------------
-FileName : ./lexical_gramma_testcase/testcase02.in
-0:  TYPE  ID LP RP 
-1:    LC 
-2:        TYPE  ID LB INT RB LB INT RB SEMI 
-3:        TYPE  ID SEMI 
-4:        ID LB INT COMMA INT RB  ASSIGNOP  FLOAT SEMI 
-5:        IF  LP ID LB INT RB LB INT RB  EQUAL  INT RP  ID  ASSIGNOP  INT  ELSE  ID  ASSIGNOP  INT SEMI 
-6:    RC 
-7:    
--------------------
-FileName : ./lexical_gramma_testcase/testcase03.in
-0:  TYPE  ID LP RP 
-1:    LC 
-2:        TYPE  ID SEMI 
-3:        ID  ASSIGNOP  ID  PLUS  INT SEMI 
-4:    RC 
-5:    
--------------------
-FileName : ./lexical_gramma_testcase/testcase04.in
-0:  STRUCT  ID 
-1:    LC 
-2:        TYPE  ID COMMA  ID SEMI 
-3:    RC SEMI 
-4:    TYPE  ID LP RP 
-5:    LC 
-6:        STRUCT  ID  ID SEMI 
-7:        ID DOT ID  ASSIGNOP  FLOAT SEMI 
-8:    RC 
-9:    
--------------------
-FileName : ./lexical_gramma_testcase/testcase05_opt.in
-0:  TYPE  ID LP RP 
-1:    LC 
-2:        TYPE  ID  ASSIGNOP  INT INT SEMI 
-3:        TYPE  ID  ASSIGNOP  INT ID SEMI 
-4:    RC 
-5:    
--------------------
-FileName : ./lexical_gramma_testcase/testcase06_opt.in
-0:  TYPE  ID LP RP 
-1:    LC 
-2:        TYPE  ID  ASSIGNOP  INT INT SEMI 
-3:        TYPE  ID  ASSIGNOP  INT ID SEMI 
-4:    RC 
-5:    
--------------------
-FileName : ./lexical_gramma_testcase/testcase07_opt.in
-0:  TYPE  ID LP RP 
-1:    LC 
-2:        TYPE  ID  ASSIGNOP  FLOAT SEMI 
-3:    RC 
-4:    
--------------------
-FileName : ./lexical_gramma_testcase/testcase08_opt.in
-0:  TYPE  ID LP RP 
-1:    LC 
-2:        TYPE  ID  ASSIGNOP  FLOAT ID SEMI 
-3:    RC 
-4:    
--------------------
-FileName : ./lexical_gramma_testcase/testcase09_opt.in
-0:  TYPE  ID LP RP 
-1:    LC 
-2:        COMMENT1 
-3:        COMMENT2
-4:        TYPE  ID  ASSIGNOP  INT SEMI 
-5:    RC 
-6:    
--------------------
-FileName : ./lexical_gramma_testcase/testcase10_opt.in
-0:  TYPE  ID LP RP 
-1:    LC 
-2:        COMMENT2
-3:        STAR DIV 
-4:        TYPE  ID  ASSIGNOP  INT SEMI 
-5:    RC 
-6:    
--------------------
+File: ./lexical_gramma_testcase/testcase01.in
+
+****Error Type A occured at line 4, dealing lexema ~
+Error TYPE B in lineno: 4
+File: ./lexical_gramma_testcase/testcase02.in
+Error TYPE B in lineno: 5
+File: ./lexical_gramma_testcase/testcase03.in
+Program
+  ExtDefList
+    ExtDef
+      Specifer
+        TYPE
+      FunDec
+        ID : inc
+        LP
+        RP
+      Compst
+        LC
+        DefList
+          Def
+            Specifer
+              TYPE
+            DecList
+              Dec
+                VarDec
+                  ID : i
+            SMEI
+          DefList
+        StmtList
+          Stmt
+            Exp
+              Exp
+                ID : i
+              ASSIGNOP
+              Exp
+                Exp
+                  ID : i
+                PLUS
+                Exp
+                  Exp
+                    INT : 1
+            SMEI
+          StmtList
+        RC
+    ExtDefList
+File: ./lexical_gramma_testcase/testcase04.in
+Program
+  ExtDefList
+    ExtDef
+      Specifer
+        StructSpecifer
+          STRUCT
+          OptTag
+            ID : Complex
+          LC
+          DefList
+            Def
+              Specifer
+                TYPE
+              DecList
+                Dec
+                  VarDec
+                    ID : real
+                COMMA
+                DecList
+                  Dec
+                    VarDec
+                      ID : image
+              SMEI
+            DefList
+          RC
+      SMEI
+    ExtDefList
+      ExtDef
+        Specifer
+          TYPE
+        FunDec
+          ID : main
+          LP
+          RP
+        Compst
+          LC
+          DefList
+            Def
+              Specifer
+                StructSpecifer
+                  STRUCT
+                  Tag
+                    ID : Complex
+              DecList
+                Dec
+                  VarDec
+                    ID : x
+              SMEI
+            DefList
+          StmtList
+            Stmt
+              Exp
+                Exp
+                  Exp
+                    ID : y
+                  DOT
+                  ID : image
+                ASSIGNOP
+                Exp
+                  FLOAT : 3.500000
+              SMEI
+            StmtList
+          RC
+      ExtDefList
+File: ./lexical_gramma_testcase/testcase05_opt.in
+Program
+  ExtDefList
+    ExtDef
+      Specifer
+        TYPE
+      FunDec
+        ID : main
+        LP
+        RP
+      Compst
+        LC
+        DefList
+          Def
+            Specifer
+              TYPE
+            DecList
+              Dec
+                VarDec
+                  ID : i
+                ASSIGNOP
+                Exp
+                  Exp
+                    INT_8 : 83
+            SMEI
+          DefList
+            Def
+              Specifer
+                TYPE
+              DecList
+                Dec
+                  VarDec
+                    ID : j
+                  ASSIGNOP
+                  Exp
+                    Exp
+                      INT_16 : 63
+              SMEI
+            DefList
+        StmtList
+        RC
+    ExtDefList
+File: ./lexical_gramma_testcase/testcase06_opt.in
+Error TYPE B in lineno: 3
+File: ./lexical_gramma_testcase/testcase07_opt.in
+Program
+  ExtDefList
+    ExtDef
+      Specifer
+        TYPE
+      FunDec
+        ID : main
+        LP
+        RP
+      Compst
+        LC
+        DefList
+          Def
+            Specifer
+              TYPE
+            DecList
+              Dec
+                VarDec
+                  ID : i
+                ASSIGNOP
+                Exp
+                  FLOAT : 0.000105
+            SMEI
+          DefList
+        StmtList
+        RC
+    ExtDefList
+File: ./lexical_gramma_testcase/testcase08_opt.in
+Error TYPE B in lineno: 3
+File: ./lexical_gramma_testcase/testcase09_opt.in
+line 3 :COMMENT1 
+line 4 : COMMENT2 
+Program
+  ExtDefList
+    ExtDef
+      Specifer
+        TYPE
+      FunDec
+        ID : main
+        LP
+        RP
+      Compst
+        LC
+        DefList
+          Def
+            Specifer
+              TYPE
+            DecList
+              Dec
+                VarDec
+                  ID : i
+                ASSIGNOP
+                Exp
+                  Exp
+                    INT : 1
+            SMEI
+          DefList
+        StmtList
+        RC
+    ExtDefList
+File: ./lexical_gramma_testcase/testcase10_opt.in
+line 3 : COMMENT2 
+Error TYPE B in lineno: 8
