@@ -10,22 +10,25 @@
 #define MAX_SYNTAX_ACTION 0xffff
 
 
+
 #define SYN_OP_TYPE(name) SYN_OP_##name
 
 #define GET_OP_FUNC(name,flag) _syn_op_##name##_##flag
 
-#define REG_OP_FUNC(name,flag) register_action(SYN_OP_TYPE(name),flag,GET_OP_FUNC(array_def,flag));
+#define REG_OP_FUNC(name,flag) register_action(SYN_OP_TYPE(name),flag,GET_OP_FUNC(name,flag));
 
 #define MAKE_OP_FUNC(name,flag) \
     void GET_OP_FUNC(name,flag) (_SI* node)
 
 enum SyntaxActionType{
     SYN_OP_TYPE(array_def),
-    SYN_OP_TYPE(var_def)
+    SYN_OP_TYPE(var_def),
+    SYN_OP_TYPE(basic_type_val),
+    SYN_OP_TYPE(var_ref),
 };
 
 typedef struct SyntaxActionNode{
-    void (*callee) (_SI*);
+    void (*callee) (_SI* node);
     bool isreg;
 }_SAN;
 
@@ -50,5 +53,7 @@ extern _SI** cnodelist;
 
 MAKE_OP_FUNC(array_def,ROOT_FIRST_ACTION);
 MAKE_OP_FUNC(var_def,ROOT_FIRST_ACTION);
+MAKE_OP_FUNC(basic_type_val,ROOT_FIRST_ACTION);
+MAKE_OP_FUNC(var_ref,ROOT_FIRST_ACTION);
 
 #endif

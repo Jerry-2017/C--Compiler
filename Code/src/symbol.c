@@ -108,6 +108,24 @@ char *add_str_tbl(char *p_str){
     return string_table+ret_value;
 }
 
+_SI* get_nth_child(_SI* node,int x)
+{
+    int cnt=node->cldno;
+    if (x>cnt || x<=0) {
+        printf("Overflow in get nth child\n");
+        return node;
+    }
+
+    _SI* p=node->lc;
+    x--;
+    while (x>0)
+    {
+        p=p->rc;
+        x--;
+    }
+    return p;
+}
+
 _SI* add_sym_node(int sym_type, int num, ...)
 {
     va_list valist;
@@ -116,6 +134,7 @@ _SI* add_sym_node(int sym_type, int num, ...)
     _SI *psi,*cpsi=&symbol_sequence[symbols++];  
     cpsi->action_id=-1;  
     cpsi->sym_type=sym_type;
+    cpsi->sym_str=sym_str(sym_type);
     cpsi->lineno=yylineno;
     va_start(valist,num);
     

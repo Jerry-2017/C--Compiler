@@ -5,6 +5,35 @@
 void init_variable()
 {
     vt_cnt=0;
+    se_cnt=-1;
+    block_id=0;
+    new_env_block();
+}
+
+void new_env_block()
+{
+    se_cnt++;
+    stack_env[se_cnt][0]=ENV_BLOCK;
+    stack_env[se_cnt][1]=block_id++;
+}
+
+void new_env_func_param_dec(int funcid)
+{
+    se_cnt++;
+    stack_env[se_cnt][0]=ENV_FUNC_PARM_DEC;
+    stack_env[se_cnt][1]=funcid;
+}
+
+void new_env_struct_dec(int structid)
+{
+    se_cnt++;
+    stack_env[se_cnt][0]=ENV_STRUCT_DEF;
+    stack_env[se_cnt][1]=structid;
+}
+
+void exit_env()
+{
+    se_cnt--;
 }
 
 int add_variable(char *var_name,int type_id)
@@ -30,3 +59,5 @@ int compare_type(int var1_id,int var2_id)
 {
     return var_table[var1_id].var_type==var_table[var2_id].var_type;
 }
+
+

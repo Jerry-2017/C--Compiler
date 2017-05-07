@@ -19,7 +19,7 @@ void travel(_SI* node,int depth)
 {
     if (node==root)
         printf("Start SDT Processing\n");
-    //printf("%s",sym_str(node->sym_type));
+    printf("%s\n",sym_str(node->sym_type));
     int i=0;
     _SI* nl[10];
     int cnt=node->cldno;
@@ -37,7 +37,7 @@ void travel(_SI* node,int depth)
     }
     cnodelist=nl;
     do_syntax_action(node->action_id,0,node);
-    i=2;
+    i=1;
 
     cnt=node->cldno;
     if (cnt>0)
@@ -55,7 +55,7 @@ void travel(_SI* node,int depth)
         }
     }
     cnodelist=nl;
-    do_syntax_action(node->action_id,1,node);
+    do_syntax_action(node->action_id,-1,node);
 }
 
 void travel_syntax_tree(_SI* node,int depth)

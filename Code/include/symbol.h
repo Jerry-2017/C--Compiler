@@ -48,6 +48,7 @@ typedef struct SymbolItem {
 
     char *sym_str;
     int sym_type;
+    int sym_affix_type;
     int action_id;
     int val_type_id;
     int var_id;
@@ -89,6 +90,7 @@ extern int strbuff;
 
 #endif
 
+_SI* get_nth_child(_SI* node,int x);
 _SI* add_sym_seq(int sym_type);
 _SI* add_sym_seqx(int sym_type,char *val);
 char *add_str_tbl(char *p_str);

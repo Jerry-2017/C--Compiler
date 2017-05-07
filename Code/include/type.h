@@ -66,6 +66,7 @@ extern int sarg_table_cnt;
 void pass_type(_SI *src,_SI *dst);
 void init_type();
 int add_type();
+int find_type(char*,int);
 int add_type_array(int typeid,int arrsize);
 
 #endif

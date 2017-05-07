@@ -77,8 +77,8 @@ FunDec:ID LP VarList RP
         { $$=add_sym_node(S_FUNDEC,4,$1,$2,$3,$4); }
         |ID LP RP { $$=add_sym_node(S_FUNDEC,3,$1,$2,$3); }
         ;
-VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); }
-        |ParamDec { $$=add_sym_node(S_VARLIST,1,$1); }
+VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); $$->sym_affix_type=2; }
+        |ParamDec { $$=add_sym_node(S_VARLIST,1,$1); $$->sym_affix_type=1; }
         ;
 ParamDec:Specifer VarDec { $$=add_sym_node(S_PARAMDEC,2,$1,$2); }
         ;
@@ -122,14 +122,14 @@ Exp:Exp ASSIGNOP Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); }
         |ID LP RP { $$=add_sym_node(S_EXP,3,$1,$2,$3); }
         |Exp LB Exp RB { $$=add_sym_node(S_EXP,4,$1,$2,$3,$4); }
         |Exp DOT ID  { $$=add_sym_node(S_EXP,3,$1,$2,$3); }
-        |ID { $$=add_sym_node(S_EXP,1,$1); }
-        |Int { $$=add_sym_node(S_EXP,1,$1); }
-        |FLOAT{ $$=add_sym_node(S_EXP,1,$1); }
+        |ID { $$=add_sym_node(S_EXP,1,$1); bind_sym_action($$,SYN_OP_TYPE(var_ref));}
+        |Int { $$=add_sym_node(S_EXP,1,$1);  }
+        |FLOAT{ $$=add_sym_node(S_EXP,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); }
         ;
 
-Int :INT{ $$=add_sym_node(S_EXP,1,$1); }  
-        | INT_8{ $$=add_sym_node(S_EXP,1,$1); } 
-        | INT_16{ $$=add_sym_node(S_EXP,1,$1); }
+Int :INT{ $$=add_sym_node(S_INT,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); }  
+        | INT_8{ $$=add_sym_node(S_INT,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); } 
+        | INT_16{ $$=add_sym_node(S_INT,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); }
 
 Args:Exp COMMA Args { $$=add_sym_node(S_ARGS,3,$1,$2,$3); }
         |Exp { $$=add_sym_node(S_ARGS,1,$1); }
@@ -164,8 +164,8 @@ int main(int argc, char** argv)
     root=NULL;
     yyparse();
     if (!errorrec) {
-        travel_syntax_tree(root,0);
-        //travel (root,0);
+        //travel_syntax_tree(root,0);
+        travel (root,0);
     }
     return 0;
 }

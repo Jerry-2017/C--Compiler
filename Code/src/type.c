@@ -45,6 +45,14 @@ int add_type(_TI* pti)
     return ret;
 }
 
+int find_type(char *tname,int type)
+{
+    int i;
+    for (i=0;i<ttcnt;i++)
+        if (type_table[i].type==type && strcmp(tname,type_table[i].name)==0)
+            return i;
+    return -1;
+}
 
 
 int add_type_array(int typeid,int arrsize)
@@ -71,6 +79,7 @@ void init_type_table()
     add_type(&temp);
     
 }
+
 
 void pass_type(_SI *src,_SI *dst)
 {

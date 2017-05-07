@@ -10,7 +10,7 @@ syntax:
 	mv ./syntax.tab.h ./include/
 	mv ./syntax.tab.c ./src/
 clean:
-	rm ./src/lex.yy.c ./src/syntax.tab.c ./include/syntax.tab.h syntax.output parser
+	rm ./src/lex.yy.c ./src/syntax.tab.c ./include/syntax.tab.h syntax.output parser ./lexical_result.txt
 testl: parser
 	rm -f lexical_result.txt
 	find ./lexical_gramma_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> lexical_result.txt
