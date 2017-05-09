@@ -26,11 +26,14 @@ void new_env_func_param_dec(int funcid)
     func_table[funcid].arg_pos=vt_cnt;
 }
 
-void new_env_struct_dec(int structid)
+void new_env_struct_def(int structid)
 {
     se_cnt++;
     stack_env[se_cnt][0]=ENV_STRUCT_DEF;
     stack_env[se_cnt][1]=structid;
+    type_table[structid]._struct.elempos=-1;
+    type_table[structid]._struct.elemsize=0;
+    type_table[structid]._struct.lastpos=-1;
 }
 
 void exit_env()
@@ -52,6 +55,7 @@ void exit_env()
 
 int add_variable(char *var_name,int type_id)
 {
+    //printf("varname %s type %d\n",var_name,type_id);
     switch (stack_env[se_cnt][0])
     {
         case ENV_BLOCK:
@@ -74,7 +78,27 @@ int add_variable(char *var_name,int type_id)
             return vt_cnt++;
         }
         case ENV_STRUCT_DEF:
-            return 0;
+        {
+            int sid=stack_env[se_cnt][1];
+            if (type_table[sid]._struct.elempos==-1)
+            {
+                type_table[sid]._struct.elempos=vt_cnt;
+                type_table[sid]._struct.lastpos=vt_cnt;
+            }
+            else
+            {
+                int varid=type_table[sid]._struct.lastpos;
+                var_table[varid].next_var=vt_cnt;
+                type_table[sid]._struct.lastpos=vt_cnt;
+            }
+            var_table[vt_cnt].env_type=ENV_STRUCT_DEF;
+            var_table[vt_cnt].env_id=sid;
+            var_table[vt_cnt].name=var_name;
+            var_table[vt_cnt].var_type=type_id;
+            var_table[vt_cnt].next_var=-1;
+            type_table[sid]._struct.elemsize+=1;
+            return vt_cnt++;
+        }
     }
 }
 
@@ -110,10 +134,24 @@ int get_variable(char *var_name)
     return -1;
 }
 
+int get_struct_variable(int stid,char *var_name)
+{
+    int cnt=type_table[stid]._struct.elemsize;
+    int start=type_table[stid]._struct.elempos;
+    int i=0;
+    for (;i<cnt;i++)
+    {
+        if (strcmp(var_table[start].name,var_name)==0)
+            return start;
+        start=var_table[start].next_var;
+    }
+    return -1;
+}
 
 int compare_type(int var1_id,int var2_id)
 {
     return var_table[var1_id].var_type==var_table[var2_id].var_type;
 }
+
 
 

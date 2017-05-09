@@ -12,6 +12,9 @@ void init_syntax_action()
 
     REG_OP_FUNC(pass_declist,ROOT_FIRST_ACTION);
     REG_OP_FUNC(pass_compst,ROOT_FIRST_ACTION);
+    REG_OP_FUNC(pass_var_dec,ROOT_FIRST_ACTION);
+    REG_OP_FUNC(stmt,ROOT_FIRST_ACTION);
+    REG_OP_FUNC(struct_def,ROOT_FIRST_ACTION);
 
     REG_OP_FUNC(pass_def,1);
     REG_OP_FUNC(func_arg_def,1);
@@ -20,6 +23,9 @@ void init_syntax_action()
 
     REG_OP_FUNC(func_def,2);
 
+    REG_OP_FUNC(exp_struct,ROOT_LAST_ACTION);
+    REG_OP_FUNC(stmt,ROOT_LAST_ACTION);
+    REG_OP_FUNC(pass_var_dec,ROOT_LAST_ACTION);
     REG_OP_FUNC(var_def,ROOT_LAST_ACTION);
     REG_OP_FUNC(var_ref,ROOT_LAST_ACTION);
     REG_OP_FUNC(basic_type_val,ROOT_LAST_ACTION);
@@ -30,6 +36,10 @@ void init_syntax_action()
     REG_OP_FUNC(exp_func_call,ROOT_LAST_ACTION);
     REG_OP_FUNC(exp_2_op,ROOT_LAST_ACTION);
     REG_OP_FUNC(exp_1_op,ROOT_LAST_ACTION);
+    REG_OP_FUNC(basic_type,ROOT_LAST_ACTION);
+    REG_OP_FUNC(struct_type,ROOT_LAST_ACTION);
+    REG_OP_FUNC(struct_def,ROOT_LAST_ACTION);
+    REG_OP_FUNC(pass_type,ROOT_LAST_ACTION)
 }
 
 void bind_sym_action(_SI* node,int action_id)
@@ -65,6 +75,26 @@ void syntax_error(int error_id,int lineno,char *error_des)
     printf("Error type %d at Line %d: %s\n",error_id,lineno,error_des);
 }
 
+MAKE_OP_FUNC(stmt,ROOT_FIRST_ACTION)
+{
+    if (node->sym_affix_type==1)  //Compst
+    {
+        cnodelist[0]->func_id=node->func_id;
+    } 
+    else if (node->sym_affix_type==3) //IF LP Exp RP Stmt ELSE Stmt 
+    {
+        cnodelist[4]->func_id=node->func_id;
+        cnodelist[6]->func_id=node->func_id;
+    }
+    else if (node->sym_affix_type==4) //While ( Exp ) Stmt
+    {
+        cnodelist[4]->func_id=node->func_id;
+    }
+    else if (node->sym_affix_type==3) //IF LP Exp RP Stmt 
+    {
+        cnodelist[4]->func_id=node->func_id;
+    }
+}
 
 MAKE_OP_FUNC(pass_compst,ROOT_FIRST_ACTION)
 {
@@ -83,6 +113,7 @@ MAKE_OP_FUNC(pass_compst,ROOT_FIRST_ACTION)
             add_variable(var_table[i].name,var_table[i].var_type);
         }
     }
+    cnodelist[0]->func_id=node->func_id;
 }
 
 MAKE_OP_FUNC(pass_def,1)
@@ -96,7 +127,10 @@ MAKE_OP_FUNC(array_def,1)
     cnodelist[0]->val_type_id=add_type_array(node->val_type_id,size);
 }
 
-
+MAKE_OP_FUNC(pass_var_dec,ROOT_FIRST_ACTION)
+{
+    cnodelist[0]->val_type_id=node->val_type_id;
+}
 
 MAKE_OP_FUNC(pass_declist,ROOT_FIRST_ACTION)
 {
@@ -111,6 +145,27 @@ MAKE_OP_FUNC(pass_declist,ROOT_FIRST_ACTION)
     }
 }
 
+MAKE_OP_FUNC(struct_def,ROOT_FIRST_ACTION)
+{
+    int tid=add_struct();
+    char *stname="";
+    if (cnodelist[1]->sym_affix_type==0)
+    {
+        _SI* ID=get_nth_child(cnodelist[1],1);
+        stname=ID->value.pstr;
+        //printf("sname %s\n",stname);
+        if (find_type(stname,2)!=-1)
+        {
+            char tp[0x100];
+            sprintf(tp,"Duplicated name \"%s\"",stname);
+            syntax_error(16,cnodelist[0]->lineno,tp);            
+            stname="";
+        }
+    }
+    type_table[tid].name=stname;
+    node->val_type_id=tid;
+    new_env_struct_def(tid);
+}
 
 MAKE_OP_FUNC(func_arg_def,1)
 {
@@ -159,15 +214,33 @@ MAKE_OP_FUNC(func_arg_def,ROOT_LAST_ACTION)
     exit_env();
 }
 
+MAKE_OP_FUNC(pass_var_dec,ROOT_LAST_ACTION)
+{
+    if (node->sym_affix_type==1)
+    {
+        if (cnodelist[0]->val_type_id!=cnodelist[2]->val_type_id)
+            syntax_error(5,cnodelist[0]->lineno,"Type mismatched for assignment.");       
+    }
+}
+
 MAKE_OP_FUNC(var_def,ROOT_LAST_ACTION)
 {
     char *vname=cnodelist[0]->value.pstr;
     //printf("variable %s size %d var_id %d\n",vname,type_table[node->val_type_id].size,get_variable(vname));
     if (get_variable(vname)!=-1)
     {
-        char tp[0x100];
-        sprintf(tp,"Redefined Variable \"%s\"",vname);
-        syntax_error(3,cnodelist[0]->lineno,tp);
+        if (stack_env[se_cnt][0]==ENV_STRUCT_DEF)
+        {
+            char tp[0x100];
+            sprintf(tp,"Redefined field \"%s\"",vname);
+            syntax_error(16,cnodelist[0]->lineno,tp);
+        }
+        else
+        {
+            char tp[0x100];
+            sprintf(tp,"Redefined Variable \"%s\"",vname);
+            syntax_error(3,cnodelist[0]->lineno,tp);
+        }
     }
     else
     {
@@ -188,6 +261,7 @@ MAKE_OP_FUNC(var_ref,ROOT_LAST_ACTION)
     else
     {
         node->var_id=vid;
+        node->val_type_id=var_table[vid].var_type;
         node->is_left_val=true;
     }
 }
@@ -253,9 +327,10 @@ MAKE_OP_FUNC(exp_2_op,ROOT_LAST_ACTION)
         node->val_type_id=TYPE_INT;
         node->is_left_val=false;
     }
-    else if (node->sym_affix_type==3 || node->sym_affix_type==4 || node->sym_affix_type==5 || node->sym_affix_type==6)
+    else if (node->sym_affix_type==3 || node->sym_affix_type==4 || node->sym_affix_type==5 || node->sym_affix_type==6 || node->sym_affix_type==7)
     {
         int vt1_id=cnodelist[0]->val_type_id,vt2_id=cnodelist[2]->val_type_id;
+        //printf("op1type %d op2type %d TYPE_INT %d TYPE_FLOAT %d\n",vt1_id,vt2_id,TYPE_INT,TYPE_FLOAT);
         if  (vt1_id!=vt2_id)
         {
             syntax_error(7,cnodelist[1]->lineno,"Type mismatched for operands");
@@ -272,31 +347,41 @@ MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION)
     if (funcid==-1)
     {
         char tp[0x100];
-        sprintf(tp,"Undefined function \"%s\"",funcname);
-        syntax_error(2,cnodelist[0]->lineno,tp);
+        if (get_variable(funcname)!=-1)
+        {
+            sprintf(tp,"\"%s\" is not a function",funcname);
+            syntax_error(11,cnodelist[0]->lineno,tp);
+        }
+        else
+        {            
+            sprintf(tp,"Undefined function \"%s\"",funcname);
+            syntax_error(2,cnodelist[0]->lineno,tp);
+        }
     }
     else if (node->sym_affix_type==0)
     {
-        int i;
+        int i=0;
         int base=func_table[funcid].arg_pos;
         int cnt=func_table[funcid].arg_size;
         bool f=true;
-        _SI* arg_node=cnodelist[0];
+        _SI* arg_node=cnodelist[2];
         while (i<cnt)
         {
-            _SI* expnode=get_nth_child(arg_node,0);
+            _SI* expnode=get_nth_child(arg_node,1);
             if (expnode->val_type_id!=var_table[base+i].var_type)
             {
                 f=false;
                 break;
             }
             i++;
-            if (arg_node->sym_affix_type==1)
+            if (arg_node->sym_affix_type==1 || i==cnt)
                 break;
             else
-                arg_node=get_nth_child(arg_node,2);
+            {
+                arg_node=get_nth_child(arg_node,3);
+            }
         }
-        if (i!=cnt) f=false;
+        if (i!=cnt || arg_node->sym_affix_type==0) f=false;
         if (!f) {
             char tp[0x100];
             sprintf(tp,"Function \"%s\" is not applicable for arguments",funcname);
@@ -319,4 +404,70 @@ MAKE_OP_FUNC(exp_arr,ROOT_LAST_ACTION)
     }
 }
 
+MAKE_OP_FUNC(basic_type,ROOT_LAST_ACTION)
+{
+    node->val_type_id=find_type(cnodelist[0]->value.pstr,0);
+    //printf("type %d\n",node->val_type_id);
+}
+
+MAKE_OP_FUNC(stmt,ROOT_LAST_ACTION)
+{
+    if (node->sym_affix_type==2) //return Exp ;
+    {
+        int funcid=node->func_id;
+        int ret_type=func_table[funcid].ret_type;
+        if (cnodelist[1]->val_type_id!=ret_type)
+            syntax_error(8,cnodelist[0]->lineno,"Type mismatched for return");
+    }
+}
+
+MAKE_OP_FUNC(pass_type,ROOT_LAST_ACTION)
+{
+    node->val_type_id=cnodelist[0]->val_type_id;
+}
+
+MAKE_OP_FUNC(struct_type,ROOT_LAST_ACTION)
+{
+    _SI* pad=get_nth_child(cnodelist[1],1);
+    char *stname=pad->value.pstr;
+    int type_id=find_type(stname,2);
+    if (type_id==-1)
+    {
+        char tp[0x100];
+        sprintf(tp,"Undefined structure \"%s\"",stname);
+        syntax_error(17,cnodelist[0]->lineno,tp);
+    }
+    node->val_type_id=type_id;
+}
+
+MAKE_OP_FUNC(struct_def,ROOT_LAST_ACTION)
+{
+    exit_env();
+}
+
+MAKE_OP_FUNC(exp_struct,ROOT_LAST_ACTION){
+    //printf("********");
+    int tid=cnodelist[0]->val_type_id;
+    char *fieldid=cnodelist[2]->value.pstr;
+    //printf("ssfield %s \n",fieldid);
+    if (type_table[tid].type!=2)
+    {
+        syntax_error(13,cnodelist[0]->lineno,"Illegal use of \".\"");
+    }
+    else
+    {
+        int var_id=get_struct_variable(tid,fieldid);
+        if (var_id==-1)
+        {
+            char tp[0x100];
+            sprintf(tp,"Non-existent field \"%s\"",fieldid);
+            syntax_error(14,cnodelist[0]->lineno,tp);
+        }
+        else
+        {
+            node->val_type_id=var_table[var_id].var_type;
+        }
+    }
+    node->is_left_val=true;
+}
 

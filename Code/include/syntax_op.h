@@ -32,7 +32,14 @@ enum SyntaxActionType{
     SYN_OP_TYPE(exp_func_call),
     SYN_OP_TYPE(exp_arr),
     SYN_OP_TYPE(func_def),
-    SYN_OP_TYPE(pass_compst)
+    SYN_OP_TYPE(pass_compst),
+    SYN_OP_TYPE(basic_type),
+    SYN_OP_TYPE(pass_var_dec),
+    SYN_OP_TYPE(stmt),
+    SYN_OP_TYPE(struct_type),
+    SYN_OP_TYPE(struct_def),
+    SYN_OP_TYPE(pass_type),
+    SYN_OP_TYPE(exp_struct)
 };
 
 typedef struct SyntaxActionNode{
@@ -62,6 +69,9 @@ extern _SI** cnodelist;
 
 MAKE_OP_FUNC(pass_declist,ROOT_FIRST_ACTION);
 MAKE_OP_FUNC(pass_compst,ROOT_FIRST_ACTION);
+MAKE_OP_FUNC(pass_var_dec,ROOT_FIRST_ACTION);
+MAKE_OP_FUNC(stmt,ROOT_FIRST_ACTION);
+MAKE_OP_FUNC(struct_def,ROOT_FIRST_ACTION);
 
 MAKE_OP_FUNC(array_def,1);
 MAKE_OP_FUNC(func_arg_def,1);
@@ -70,6 +80,13 @@ MAKE_OP_FUNC(func_def,1);
 
 MAKE_OP_FUNC(func_def,2);
 
+
+MAKE_OP_FUNC(pass_type,ROOT_LAST_ACTION);
+MAKE_OP_FUNC(struct_type,ROOT_LAST_ACTION);
+MAKE_OP_FUNC(struct_def,ROOT_LAST_ACTION);
+MAKE_OP_FUNC(stmt,ROOT_LAST_ACTION);
+MAKE_OP_FUNC(pass_var_dec,ROOT_LAST_ACTION);
+MAKE_OP_FUNC(basic_type,ROOT_LAST_ACTION);
 MAKE_OP_FUNC(var_def,ROOT_LAST_ACTION);
 MAKE_OP_FUNC(var_ref,ROOT_LAST_ACTION);
 MAKE_OP_FUNC(basic_type_val,ROOT_LAST_ACTION);
@@ -80,4 +97,6 @@ MAKE_OP_FUNC(func_arg_def,ROOT_LAST_ACTION);
 MAKE_OP_FUNC(exp_1_op,ROOT_LAST_ACTION);
 MAKE_OP_FUNC(exp_2_op,ROOT_LAST_ACTION);
 MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION);
+MAKE_OP_FUNC(exp_struct,ROOT_LAST_ACTION);
+
 #endif

@@ -22,8 +22,9 @@ typedef struct TypeTableItem{
             int elemtype;
         }_array;
         struct {
-            int stkpos;
-            int stksize;
+            int elempos;
+            int elemsize;
+            int lastpos;
         }_struct;
     };
 }_TI;
@@ -43,14 +44,8 @@ int ttcnt;
 _FI func_table[MAX_FUNC_NUM];
 int ft_cnt;
 
-_VI func_arg_table[MAX_FUNC_ARG_DEC];
-int farg_tabel_cnt;
-
 _TI type_table[MAX_TYPENUM];
 int type_table_cnt;
-
-_VI struct_arg_table[MAX_STRUCT_VAR_DEF];
-int sarg_table_cnt;
 
 int TYPE_INT;
 int TYPE_FLOAT;
@@ -76,6 +71,7 @@ extern int sarg_table_cnt;
 
 #endif
 
+int add_struct();
 void pass_type(_SI *src,_SI *dst);
 void init_type();
 int add_type();

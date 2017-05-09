@@ -17,6 +17,7 @@ typedef struct VariableTableItem
     int var_type;
     int env_type;
     int env_id;
+    int next_var;
     union {
         struct {
             int base;
@@ -51,6 +52,7 @@ extern int block_id;
 #endif
 
 void init_variable();
+int get_struct_variable(int stid,char *var_name);
 int add_variable(char *var_name,int type_id);
 int compare_type(int var1_id,int var2_id);
 int get_variable(char *var_name);
@@ -58,7 +60,7 @@ int get_variable_allenv(char *var_name);
 
 void new_env_block();
 void new_env_func_param_dec(int funcid);
-void new_env_struct_dec(int structid);
+void new_env_struct_def(int structid);
 void exit_env();
 
 

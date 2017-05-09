@@ -21,6 +21,7 @@ typedef enum SymbolType{
     S_ERROR,
 
     S_PROGRAM,
+    S_RELOP,
     S_EXTDEFLIST,
     S_EXTDEF,
     S_EXTDECLIST,

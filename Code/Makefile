@@ -6,15 +6,17 @@ lex:
 	flex ./src/lex.l
 	mv lex.yy.c ./src/
 syntax: 
-	bison -d -v ./src/syntax.y
+	bison -d -v --report=all ./src/syntax.y
 	mv ./syntax.tab.h ./include/
 	mv ./syntax.tab.c ./src/
 clean:
-	rm ./src/lex.yy.c ./src/syntax.tab.c ./include/syntax.tab.h syntax.output parser ./lexical_result.txt
+	rm ./src/lex.yy.c ./src/syntax.tab.c ./include/syntax.tab.h syntax.output parser ./lexical_result.txt syntax.output
 testl: parser
 	rm -f lexical_result.txt
 	find ./lexical_gramma_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> lexical_result.txt
 test: parser
 	rm -f lexical_result.txt
 	find ./syntax_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> lexical_result.txt
-
+calc:
+	find  ./ -name "*.c" | xargs wc -l
+	find  ./ -name "*.h" | xargs wc -l

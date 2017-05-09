@@ -45,6 +45,14 @@ int add_type(_TI* pti)
     return ret;
 }
 
+int add_struct()
+{
+    _TI temp;
+    temp.type=2;
+    temp.name="";
+    return add_type(&temp);
+}
+
 int find_type(char *tname,int type)
 {
     int i;

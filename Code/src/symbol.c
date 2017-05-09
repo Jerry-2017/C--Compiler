@@ -35,12 +35,6 @@ void init_sym_trans()
     sym_trans_table[S_AND]="And";
     sym_trans_table[S_OR]="Or";
     sym_trans_table[S_NOT]="Not";
-    sym_trans_table[S_EQUAL]="Equal";
-    sym_trans_table[S_LESS]="Less";
-    sym_trans_table[S_BIGGER]="Bigger";
-    sym_trans_table[S_LESSEQUAL]="Lessequal";
-    sym_trans_table[S_BIGGEREQUAL]="Biggerequal";
-    sym_trans_table[S_NOTEQUAL]="Notequal";
     sym_trans_table[S_LP]="Lp";
     sym_trans_table[S_RP]="Rp";
     sym_trans_table[S_LB]="Lb";
@@ -77,6 +71,14 @@ void init_sym_trans()
     sym_trans_table[S_EXP]="Exp";
     sym_trans_table[S_INT]="Int";
     sym_trans_table[S_ARGS]="Args";
+    sym_trans_table[S_BIGGER]=">";
+    sym_trans_table[S_LESS]="<";
+    sym_trans_table[S_EQUAL]="==";
+    sym_trans_table[S_NOTEQUAL]="!=";
+    sym_trans_table[S_BIGGEREQUAL]=">=";
+    sym_trans_table[S_LESSEQUAL]="<=";
+    sym_trans_table[S_RELOP]="Relop";
+
 }
 
 char* sym_str(int sym_type)
@@ -91,7 +93,7 @@ _SI* add_sym_seq(int sym_type)
 
 _SI* add_sym_seqx(int sym_type,char *val)
 {
-    //printf("*x%s\n ",p_str);
+    //printf("*x%s\n ",sym_str(sym_type));
     //symbol_sequence[symbols].sym_str=p_str;
     symbol_sequence[symbols].lineno=yylineno;
     symbol_sequence[symbols].sym_type=sym_type;
