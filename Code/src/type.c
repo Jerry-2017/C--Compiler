@@ -80,6 +80,20 @@ void init_type_table()
     
 }
 
+int find_func(char* name)
+{
+    int i;
+    for (i=0;i<ft_cnt;i++)
+        if (strcmp(func_table[i].name,name)==0)
+            return i;
+    return -1;
+}
+
+int add_func(char *name)
+{
+    func_table[ft_cnt].name=name;
+    return ft_cnt++;
+}
 
 void pass_type(_SI *src,_SI *dst)
 {

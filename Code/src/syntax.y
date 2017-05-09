@@ -73,14 +73,14 @@ Tag:ID { $$=add_sym_node(S_TAG,1,$1); }
 VarDec:ID { $$=add_sym_node(S_VARDEC,1,$1); bind_sym_action($$,SYN_OP_TYPE(var_def)); }
         | VarDec LB INT RB { $$=add_sym_node(S_VARDEC,4,$1,$2,$3,$4);  bind_sym_action($$,SYN_OP_TYPE(array_def)); }
         ;
-FunDec:ID LP VarList RP 
-        { $$=add_sym_node(S_FUNDEC,4,$1,$2,$3,$4); }
-        |ID LP RP { $$=add_sym_node(S_FUNDEC,3,$1,$2,$3); }
+FunDec:ID LP VarList RP { $$=add_sym_node(S_FUNDEC,4,$1,$2,$3,$4); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(func_arg_def)); }
+        |ID LP RP { $$=add_sym_node(S_FUNDEC,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(func_arg_def)); }
         ;
-VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); $$->sym_affix_type=2; }
-        |ParamDec { $$=add_sym_node(S_VARLIST,1,$1); $$->sym_affix_type=1; }
+VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); //bind_sym_action($$,SYN_OP_TYPE(pass_vallist)); }
+        }
+        |ParamDec { $$=add_sym_node(S_VARLIST,1,$1);  }
         ;
-ParamDec:Specifer VarDec { $$=add_sym_node(S_PARAMDEC,2,$1,$2); }
+ParamDec:Specifer VarDec { $$=add_sym_node(S_PARAMDEC,2,$1,$2); bind_sym_action($$,SYN_OP_TYPE(pass_def)); }
         ;
 
 
@@ -101,10 +101,10 @@ DefList:Def DefList{ $$=add_sym_node(S_DEFLIST,2,$1,$2); }
         | { $$=add_sym_node(S_DEFLIST,0); }
         ;
 Def:Specifer DecList SEMI
-		{ $$=add_sym_node(S_DEF,3,$1,$2,$3); }
+		{ $$=add_sym_node(S_DEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(pass_def));}
         ;
-DecList:Dec { $$=add_sym_node(S_DECLIST,1,$1); }
-        |Dec COMMA DecList { $$=add_sym_node(S_DECLIST,3,$1,$2,$3); }
+DecList:Dec { $$=add_sym_node(S_DECLIST,1,$1); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(pass_declist)); }
+        |Dec COMMA DecList { $$=add_sym_node(S_DECLIST,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(pass_declist)); }
         ;
 Dec:VarDec { $$=add_sym_node(S_DEC,1,$1); }
         |VarDec ASSIGNOP Exp { $$=add_sym_node(S_DEC,3,$1,$2,$3); }

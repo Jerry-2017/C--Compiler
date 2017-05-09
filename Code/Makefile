@@ -14,7 +14,7 @@ clean:
 testl: parser
 	rm -f lexical_result.txt
 	find ./lexical_gramma_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> lexical_result.txt
-testr: parser
+test: parser
 	rm -f lexical_result.txt
 	find ./syntax_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> lexical_result.txt
 

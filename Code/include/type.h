@@ -4,6 +4,7 @@
 #define MAX_TYPENUM 0xffff
 #define MAX_STRUCT_VAR_DEF 0xffff
 #define MAX_FUNC_ARG_DEC 0xffff
+#define MAX_FUNC_NUM 0xffff
 
 #define BASIC_TYPE 0
 #define ARRAY_TYPE 1
@@ -39,7 +40,10 @@ typedef struct FuncTableItem
 
 int ttcnt;
 
-_SI func_arg_table[MAX_FUNC_ARG_DEC];
+_FI func_table[MAX_FUNC_NUM];
+int ft_cnt;
+
+_VI func_arg_table[MAX_FUNC_ARG_DEC];
 int farg_tabel_cnt;
 
 _TI type_table[MAX_TYPENUM];
@@ -50,9 +54,12 @@ int sarg_table_cnt;
 
 #else 
 
-extern int _ttcnt;
+extern int ttcnt;
 
-extern _SI func_arg_table[MAX_FUNC_ARG_DEC];
+extern _FI func_table[MAX_FUNC_NUM];
+extern int ft_cnt;
+
+extern _VI func_arg_table[MAX_FUNC_ARG_DEC];
 extern int farg_tabel_cnt;
 
 extern _TI type_table[MAX_TYPENUM];
@@ -68,5 +75,7 @@ void init_type();
 int add_type();
 int find_type(char*,int);
 int add_type_array(int typeid,int arrsize);
+int add_func(char *name);
+int find_func(char *name);
 
 #endif

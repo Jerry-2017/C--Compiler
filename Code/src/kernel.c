@@ -36,7 +36,7 @@ void travel(_SI* node,int depth)
         }
     }
     cnodelist=nl;
-    do_syntax_action(node->action_id,0,node);
+    do_syntax_action(node->action_id,ROOT_FIRST_ACTION,node);
     i=1;
 
     cnt=node->cldno;
@@ -55,7 +55,7 @@ void travel(_SI* node,int depth)
         }
     }
     cnodelist=nl;
-    do_syntax_action(node->action_id,-1,node);
+    do_syntax_action(node->action_id,ROOT_LAST_ACTION,node);
 }
 
 void travel_syntax_tree(_SI* node,int depth)

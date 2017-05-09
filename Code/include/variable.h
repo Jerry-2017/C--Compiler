@@ -15,6 +15,8 @@ typedef struct VariableTableItem
 {
     char *name;
     int var_type;
+    int env_type;
+    int env_id;
     union {
         struct {
             int base;
@@ -35,6 +37,7 @@ int vt_cnt;
 _VI var_table[MAX_VARIABLE_NUM];
 int stack_env[MAX_ENV_STACK][2]; // Mode Attribute
 int block_id;
+int fpdec_cnt;
 int se_cnt;
 
 #else
@@ -51,6 +54,7 @@ void init_variable();
 int add_variable(char *var_name,int type_id);
 int compare_type(int var1_id,int var2_id);
 int get_variable(char *var_name);
+int get_variable_allenv(char *var_name);
 
 void new_env_block();
 void new_env_func_param_dec(int funcid);
