@@ -72,11 +72,11 @@ void init_type_table()
     temp.type=0;
     temp.name="int";
     temp.size=4;
-    add_type(&temp);
+    TYPE_INT=add_type(&temp);
     temp.type=0;
     temp.name="float";
     temp.size=4;
-    add_type(&temp);
+    TYPE_FLOAT=add_type(&temp);
     
 }
 
@@ -89,9 +89,10 @@ int find_func(char* name)
     return -1;
 }
 
-int add_func(char *name)
+int add_func(char *name,int ret_type)
 {
     func_table[ft_cnt].name=name;
+    func_table[ft_cnt].ret_type=ret_type;
     return ft_cnt++;
 }
 

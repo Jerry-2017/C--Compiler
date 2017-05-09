@@ -52,7 +52,13 @@ int type_table_cnt;
 _VI struct_arg_table[MAX_STRUCT_VAR_DEF];
 int sarg_table_cnt;
 
+int TYPE_INT;
+int TYPE_FLOAT;
+
 #else 
+
+extern int TYPE_INT;
+extern int TYPE_FLOAT;
 
 extern int ttcnt;
 
@@ -75,7 +81,7 @@ void init_type();
 int add_type();
 int find_type(char*,int);
 int add_type_array(int typeid,int arrsize);
-int add_func(char *name);
+int add_func(char *name, int ret_type);
 int find_func(char *name);
 
 #endif

@@ -11,7 +11,7 @@
     _SI* a;
 };
 
-%token <a>  END ID KEY INT INT_8 INT_16 STRING CHAR FLOAT TYPE  DOT COMMA QUESTION SEMI ASSIGNOP PLUS MINUS STAR DIV AND OR NOT
+%token <a>  END ID KEY INT_10 INT_8 INT_16 STRING CHAR FLOAT TYPE  DOT COMMA QUESTION SEMI ASSIGNOP PLUS MINUS STAR DIV AND OR NOT
 %token <a> EQUAL LESS BIGGER LESSEQUAL BIGGEREQUAL NOTEQUAL LP RP LB RB LC RC DEFINE STRUCT CASE IF ELSE WHILE RETURN ERROR 
 
 %type <a> Program ExtDefList ExtDef ExtDecList Specifer StructSpecifer
@@ -48,8 +48,8 @@ ExtDefList : ExtDef ExtDefList { $$=add_sym_node(S_EXTDEFLIST,2,$1,$2); }
         ;
 
 ExtDef : Specifer ExtDecList SEMI { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); }
-        |Specifer SEMI { $$=add_sym_node(S_EXTDEF,2,$1,$2); }
-        |Specifer FunDec Compst { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); }
+        |StructSpecifer SEMI { $$=add_sym_node(S_EXTDEF,2,$1,$2); }
+        |Specifer FunDec Compst { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(func_def)); }
         ;
 
 ExtDecList : VarDec { $$=add_sym_node(S_EXTDECLIST,1,$1); }
@@ -71,20 +71,19 @@ Tag:ID { $$=add_sym_node(S_TAG,1,$1); }
         ;
 
 VarDec:ID { $$=add_sym_node(S_VARDEC,1,$1); bind_sym_action($$,SYN_OP_TYPE(var_def)); }
-        | VarDec LB INT RB { $$=add_sym_node(S_VARDEC,4,$1,$2,$3,$4);  bind_sym_action($$,SYN_OP_TYPE(array_def)); }
+        | VarDec LB Int RB { $$=add_sym_node(S_VARDEC,4,$1,$2,$3,$4); $$->reverse_scan=true; bind_sym_action($$,SYN_OP_TYPE(array_def)); }
         ;
 FunDec:ID LP VarList RP { $$=add_sym_node(S_FUNDEC,4,$1,$2,$3,$4); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(func_arg_def)); }
         |ID LP RP { $$=add_sym_node(S_FUNDEC,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(func_arg_def)); }
         ;
-VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); //bind_sym_action($$,SYN_OP_TYPE(pass_vallist)); }
-        }
+VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); }
         |ParamDec { $$=add_sym_node(S_VARLIST,1,$1);  }
         ;
 ParamDec:Specifer VarDec { $$=add_sym_node(S_PARAMDEC,2,$1,$2); bind_sym_action($$,SYN_OP_TYPE(pass_def)); }
         ;
 
 
-Compst:LC StmtList RC { $$=add_sym_node(S_COMPST,3,$1,$2,$3); }
+Compst:LC StmtList RC { $$=add_sym_node(S_COMPST,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(pass_compst)); }
         ;
 
 StmtList:Stmt StmtList{ $$=add_sym_node(S_STMTLIST,2,$1,$2); }
@@ -110,29 +109,31 @@ Dec:VarDec { $$=add_sym_node(S_DEC,1,$1); }
         |VarDec ASSIGNOP Exp { $$=add_sym_node(S_DEC,3,$1,$2,$3); }
         ;
 
-Exp:Exp ASSIGNOP Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); }
-        |Exp AND Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); }
-        |Exp PLUS Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); }
-        |Exp STAR Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); }
-        |Exp DIV Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); }
-        |LP Exp RP{ $$=add_sym_node(S_EXP,3,$1,$2,$3); }
-        |MINUS Exp { $$=add_sym_node(S_EXP,2,$1,$2); }
-        |NOT Exp { $$=add_sym_node(S_EXP,2,$1,$2); }
-        |ID LP Args RP { $$=add_sym_node(S_EXP,4,$1,$2,$3,$4); }
-        |ID LP RP { $$=add_sym_node(S_EXP,3,$1,$2,$3); }
-        |Exp LB Exp RB { $$=add_sym_node(S_EXP,4,$1,$2,$3,$4); }
+Exp:Exp ASSIGNOP Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
+        |Exp AND Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
+        |Exp OR Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=2; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
+        |Exp PLUS Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=3; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
+        |Exp MINUS Exp { $$=add_sym_node(S_EXP,2,$1,$2); $$->sym_affix_type=4; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
+        |Exp STAR Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=5; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
+        |Exp DIV Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=6; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
+        |LP Exp RP{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(exp_1_op)); }
+        |MINUS Exp { $$=add_sym_node(S_EXP,2,$1,$2); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(exp_1_op)); }
+        |NOT Exp { $$=add_sym_node(S_EXP,2,$1,$2); $$->sym_affix_type=2; bind_sym_action($$,SYN_OP_TYPE(exp_1_op)); }
+        |ID LP Args RP { $$=add_sym_node(S_EXP,4,$1,$2,$3,$4); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(exp_func_call));}
+        |ID LP RP { $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(exp_func_call)); }
+        |Exp LB Exp RB { $$=add_sym_node(S_EXP,4,$1,$2,$3,$4); bind_sym_action($$,SYN_OP_TYPE(exp_arr)); }
         |Exp DOT ID  { $$=add_sym_node(S_EXP,3,$1,$2,$3); }
         |ID { $$=add_sym_node(S_EXP,1,$1); bind_sym_action($$,SYN_OP_TYPE(var_ref));}
-        |Int { $$=add_sym_node(S_EXP,1,$1);  }
+        |Int { $$=add_sym_node(S_EXP,1,$1); $$->sym_affix_type=3; bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); }
         |FLOAT{ $$=add_sym_node(S_EXP,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); }
         ;
 
-Int :INT{ $$=add_sym_node(S_INT,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); }  
+Int :INT_10{ $$=add_sym_node(S_INT,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); }  
         | INT_8{ $$=add_sym_node(S_INT,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); } 
         | INT_16{ $$=add_sym_node(S_INT,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type_val)); }
 
-Args:Exp COMMA Args { $$=add_sym_node(S_ARGS,3,$1,$2,$3); }
-        |Exp { $$=add_sym_node(S_ARGS,1,$1); }
+Args:Exp COMMA Args { $$=add_sym_node(S_ARGS,3,$1,$2,$3); $$->sym_affix_type=0; }
+        |Exp { $$=add_sym_node(S_ARGS,1,$1); $$->sym_affix_type=1; }
         ;
 
 %%

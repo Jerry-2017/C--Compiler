@@ -47,11 +47,20 @@ typedef enum SymbolType{
 typedef struct SymbolItem {
 
     char *sym_str;
+    bool reverse_scan;
+    
     int sym_type;
     int sym_affix_type;
     int action_id;
+
+    int compst_func_id;
+    int func_id;
+
     int val_type_id;
     int var_id;
+    bool is_left_val;
+
+    int func_ret_type;
 
     int lineno;
     int cldno; //Child Number

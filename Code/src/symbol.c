@@ -98,6 +98,10 @@ _SI* add_sym_seqx(int sym_type,char *val)
     symbol_sequence[symbols].value.pstr=val;
     symbol_sequence[symbols].cldno=0;
     symbol_sequence[symbols].action_id=-1;
+    symbol_sequence[symbols].reverse_scan=false;
+    symbol_sequence[symbols].var_id=-1;
+    symbol_sequence[symbols].compst_func_id=-1;
+    symbol_sequence[symbols].func_id=-1;
     return &symbol_sequence[symbols++];
 }
 
@@ -133,7 +137,11 @@ _SI* add_sym_node(int sym_type, int num, ...)
     //printf("%s\n",sym_str(sym_type));
     _SI *psi,*cpsi=&symbol_sequence[symbols++];  
     cpsi->action_id=-1;  
+    cpsi->reverse_scan=false;
     cpsi->sym_type=sym_type;
+    cpsi->var_id=-1;
+    cpsi->func_id=-1;
+    cpsi->compst_func_id=-1;
     cpsi->sym_str=sym_str(sym_type);
     cpsi->lineno=yylineno;
     va_start(valist,num);

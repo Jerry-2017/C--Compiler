@@ -62,7 +62,7 @@ BLANKS [ \r\n\t]
 
 
 FLOAT [+-]?{DIGITS_10_NLZ}({DOT}{DIGITS_10})?([eE]([+-]?){DIGITS_10_NLZ})?
-INT [+-]?{DIGITS_10_NLZ}
+INT_10 [+-]?{DIGITS_10_NLZ}
 INT_8 [+-]?{DIGITS_8}
 INT_16 [+-]?{DIGITS_16}
 
@@ -106,7 +106,7 @@ COMMENT1 "//"[^\r\n]*
 {TYPE} { yylval.a=add_sym_seqx(S_TYPE,add_str_tbl(yytext)); return TYPE; }; 
 {ID} { yylval.a=add_sym_seqx(S_ID,add_str_tbl(yytext)); return ID; }; 
 
-{INT} { yylval.a=add_sym_seqx(S_INT_10,add_str_tbl(yytext)); sscanf(yytext,"%d",&yylval.a->value.ival); return INT; };
+{INT_10} { yylval.a=add_sym_seqx(S_INT_10,add_str_tbl(yytext)); sscanf(yytext,"%d",&yylval.a->value.ival); return INT_10; };
 {INT_8} { yylval.a=add_sym_seqx(S_INT_8,add_str_tbl(yytext)); sscanf(yytext,"%o",&yylval.a->value.ival); return INT_8; };
 {INT_16} { yylval.a=add_sym_seqx(S_INT_16,add_str_tbl(yytext)); sscanf(yytext,"%x",&yylval.a->value.ival); return INT_16; };
 {FLOAT} { yylval.a=add_sym_seqx(S_FLOAT,add_str_tbl(yytext)); sscanf(yytext,"%f",&yylval.a->value.fval); return FLOAT; };

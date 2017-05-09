@@ -10,16 +10,26 @@ void init_syntax_action()
         for (j=0;j<MAX_CHILDREN_EXPANSION;j++)
             symbol_action_table[i][j].isreg=false;
 
-    REG_OP_FUNC(array_def,ROOT_FIRST_ACTION);
-    REG_OP_FUNC(var_def,ROOT_FIRST_ACTION);
-    REG_OP_FUNC(basic_type_val,ROOT_FIRST_ACTION);
-    REG_OP_FUNC(var_ref,ROOT_FIRST_ACTION);
     REG_OP_FUNC(pass_declist,ROOT_FIRST_ACTION);
+    REG_OP_FUNC(pass_compst,ROOT_FIRST_ACTION);
 
     REG_OP_FUNC(pass_def,1);
     REG_OP_FUNC(func_arg_def,1);
+    REG_OP_FUNC(array_def,1);
+    REG_OP_FUNC(func_def,1);
 
+    REG_OP_FUNC(func_def,2);
+
+    REG_OP_FUNC(var_def,ROOT_LAST_ACTION);
+    REG_OP_FUNC(var_ref,ROOT_LAST_ACTION);
+    REG_OP_FUNC(basic_type_val,ROOT_LAST_ACTION);
+    REG_OP_FUNC(pass_compst,ROOT_LAST_ACTION);
+    REG_OP_FUNC(exp_arr,ROOT_LAST_ACTION);
     REG_OP_FUNC(func_arg_def,ROOT_LAST_ACTION);
+    REG_OP_FUNC(array_def,ROOT_LAST_ACTION);
+    REG_OP_FUNC(exp_func_call,ROOT_LAST_ACTION);
+    REG_OP_FUNC(exp_2_op,ROOT_LAST_ACTION);
+    REG_OP_FUNC(exp_1_op,ROOT_LAST_ACTION);
 }
 
 void bind_sym_action(_SI* node,int action_id)
@@ -51,49 +61,42 @@ void do_syntax_action(int action_id, int action_type,_SI* node)
 
 void syntax_error(int error_id,int lineno,char *error_des)
 {
+    errorrec=true;
     printf("Error type %d at Line %d: %s\n",error_id,lineno,error_des);
 }
 
-MAKE_OP_FUNC(array_def,ROOT_FIRST_ACTION)
-{
-    int size=cnodelist[2]->value.ival;
-    cnodelist[0]->val_type_id=add_type_array(node->val_type_id,size);
-}
 
-MAKE_OP_FUNC(var_def,ROOT_FIRST_ACTION)
+MAKE_OP_FUNC(pass_compst,ROOT_FIRST_ACTION)
 {
-    char *vname=cnodelist[0]->value.pstr;
-    //printf("variable %s size %d var_id %d\n",vname,type_table[node->val_type_id].size,get_variable(vname));
-    if (get_variable(vname)!=-1)
+    new_env_block();
+    //printf("new compst %d\n",node->compst_func_id);
+    if (node->compst_func_id>=0)
     {
-        errorrec=true;
-        char tp[0x100];
-        sprintf(tp,"Redefined Variable \"%s\".\n",vname);
-        syntax_error(3,cnodelist[0]->lineno,tp);
+        int i;
+        int fid=node->compst_func_id;
+        int base=func_table[fid].arg_pos;
+        int cnt=func_table[fid].arg_size;
+        //printf("base %d size %d\n",base,cnt);
+        for (i=0;i<cnt;i++)
+        {
+            //printf("new var %s\n",var_table[i].name);
+            add_variable(var_table[i].name,var_table[i].var_type);
+        }
     }
-    else
-        node->var_id=add_variable(vname,node->val_type_id);
-}
-
-MAKE_OP_FUNC(var_ref,ROOT_FIRST_ACTION)
-{
-    char *vname=cnodelist[0]->value.pstr;
-    int vid=get_variable_allenv(vname);
-    if (vid==-1)
-    {
-        errorrec=true;
-        char tp[0x100];
-        sprintf(tp,"Undefined Variable \"%s\".\n",vname);
-        syntax_error(1,cnodelist[0]->lineno,tp);
-    }
-    else
-        node->var_id=vid;
 }
 
 MAKE_OP_FUNC(pass_def,1)
 {
     cnodelist[1]->val_type_id=cnodelist[0]->val_type_id;
 }
+
+MAKE_OP_FUNC(array_def,1)
+{
+    int size=cnodelist[2]->value.ival;
+    cnodelist[0]->val_type_id=add_type_array(node->val_type_id,size);
+}
+
+
 
 MAKE_OP_FUNC(pass_declist,ROOT_FIRST_ACTION)
 {
@@ -108,14 +111,6 @@ MAKE_OP_FUNC(pass_declist,ROOT_FIRST_ACTION)
     }
 }
 
-MAKE_OP_FUNC(basic_type_val,ROOT_FIRST_ACTION)
-{
-    memcpy(&cnodelist[0]->value,&node->value,sizeof(node->value));
-    if (node->sym_type==S_INT)
-        node->val_type_id=find_type("int",BASIC_TYPE);
-    else if (node->sym_type==S_FLOAT)
-        node->val_type_id=find_type("float",BASIC_TYPE);
-}
 
 MAKE_OP_FUNC(func_arg_def,1)
 {
@@ -124,17 +119,204 @@ MAKE_OP_FUNC(func_arg_def,1)
     {
         errorrec=true;
         char tp[0x100];
-        sprintf(tp,"Redefined function  \"%s\".\n",funcname);
+        sprintf(tp,"Redefined function  \"%s\"",funcname);
         syntax_error(4,cnodelist[0]->lineno,tp);
+        new_env_block();
     }
     else
     {
-        int func_id=add_func(funcname);
+        int func_id=add_func(funcname,node->val_type_id);
+        node->func_id=func_id;
         new_env_func_param_dec(func_id);
     }
+}
+
+MAKE_OP_FUNC(func_def,1)
+{
+    cnodelist[1]->val_type_id=cnodelist[0]->val_type_id;
+}
+
+MAKE_OP_FUNC(func_def,2)
+{
+    cnodelist[2]->func_id=cnodelist[1]->func_id;
+    cnodelist[2]->compst_func_id=cnodelist[1]->func_id;
+    //printf("**%d**",cnodelist[2]->func_id);
+}
+
+MAKE_OP_FUNC(array_def,ROOT_LAST_ACTION)
+{
+    node->val_type_id=cnodelist[0]->val_type_id;
+}
+
+
+MAKE_OP_FUNC(pass_compst,ROOT_LAST_ACTION)
+{
+    exit_env();
 }
 
 MAKE_OP_FUNC(func_arg_def,ROOT_LAST_ACTION)
 {
     exit_env();
 }
+
+MAKE_OP_FUNC(var_def,ROOT_LAST_ACTION)
+{
+    char *vname=cnodelist[0]->value.pstr;
+    //printf("variable %s size %d var_id %d\n",vname,type_table[node->val_type_id].size,get_variable(vname));
+    if (get_variable(vname)!=-1)
+    {
+        char tp[0x100];
+        sprintf(tp,"Redefined Variable \"%s\"",vname);
+        syntax_error(3,cnodelist[0]->lineno,tp);
+    }
+    else
+    {
+        node->var_id=add_variable(vname,node->val_type_id);
+    }
+}
+
+MAKE_OP_FUNC(var_ref,ROOT_LAST_ACTION)
+{
+    char *vname=cnodelist[0]->value.pstr;
+    int vid=get_variable_allenv(vname);
+    if (vid==-1)
+    {
+        char tp[0x100];
+        sprintf(tp,"Undefined Variable \"%s\"",vname);
+        syntax_error(1,cnodelist[0]->lineno,tp);
+    }
+    else
+    {
+        node->var_id=vid;
+        node->is_left_val=true;
+    }
+}
+
+MAKE_OP_FUNC(exp_1_op,ROOT_LAST_ACTION)
+{
+    if (node->sym_affix_type==0 ) // (Exp)
+    {
+        node->val_type_id=cnodelist[1]->val_type_id;
+        node->is_left_val=false;
+    }
+    else if (node->sym_affix_type==1) //-Exp
+    {
+        int vt_id=cnodelist[1]->val_type_id;
+        if (vt_id!=TYPE_INT && vt_id!=TYPE_FLOAT)
+        {
+            syntax_error(7,cnodelist[1]->lineno,"Type mismatched for operands");
+            node->val_type_id=TYPE_INT;
+            node->is_left_val=false;
+        }
+        else
+        {
+            node->val_type_id=vt_id;
+            node->is_left_val=false;
+        }
+    }
+    else if (node->sym_affix_type==2) //not Exp
+    {
+        int vt_id=cnodelist[1]->val_type_id;
+        if (vt_id!=TYPE_INT)
+            syntax_error(7,cnodelist[1]->lineno,"Type mismatched for operands");
+        node->val_type_id=TYPE_INT;
+        node->is_left_val=false;
+    }
+}
+
+MAKE_OP_FUNC(basic_type_val,ROOT_LAST_ACTION)
+{
+    memcpy(&cnodelist[0]->value,&node->value,sizeof(node->value));
+    if (cnodelist[0]->sym_type==S_INT || cnodelist[0]->sym_type==S_INT_10 || cnodelist[0]->sym_type==S_INT_8 || cnodelist[0]->sym_type==S_INT_16)
+        node->val_type_id=TYPE_INT;
+    else if (cnodelist[0]->sym_type==S_FLOAT)
+        node->val_type_id=TYPE_FLOAT;
+    node->is_left_val=false;
+}
+
+MAKE_OP_FUNC(exp_2_op,ROOT_LAST_ACTION)
+{
+    if (node->sym_affix_type==0 ) // Exp = Exp
+    {
+        if (!cnodelist[0]->is_left_val)
+            syntax_error(6,cnodelist[0]->lineno,"The left-hand side of an assignment must be a variable.");
+        else if (cnodelist[0]->val_type_id!=cnodelist[2]->val_type_id)
+            syntax_error(5,cnodelist[0]->lineno,"Type mismatched for assignment.");
+        node->val_type_id=cnodelist[0]->val_type_id;
+        node->is_left_val=false;
+    }
+    else if (node->sym_affix_type==1 || node->sym_affix_type==2 ) // Exp and Exp Exp or Exp
+    {
+        int vt1_id=cnodelist[0]->val_type_id,vt2_id=cnodelist[2]->val_type_id;
+        if (vt1_id!=TYPE_INT || vt2_id!=TYPE_INT)
+            syntax_error(7,cnodelist[1]->lineno,"Type mismatched for operands");
+        node->val_type_id=TYPE_INT;
+        node->is_left_val=false;
+    }
+    else if (node->sym_affix_type==3 || node->sym_affix_type==4 || node->sym_affix_type==5 || node->sym_affix_type==6)
+    {
+        int vt1_id=cnodelist[0]->val_type_id,vt2_id=cnodelist[2]->val_type_id;
+        if  (vt1_id!=vt2_id)
+        {
+            syntax_error(7,cnodelist[1]->lineno,"Type mismatched for operands");
+        }
+        node->val_type_id=cnodelist[0]->val_type_id;
+        node->is_left_val=false;
+    }
+}
+
+MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION)
+{
+    char* funcname=cnodelist[0]->value.pstr;
+    int funcid=find_func(funcname);
+    if (funcid==-1)
+    {
+        char tp[0x100];
+        sprintf(tp,"Undefined function \"%s\"",funcname);
+        syntax_error(2,cnodelist[0]->lineno,tp);
+    }
+    else if (node->sym_affix_type==0)
+    {
+        int i;
+        int base=func_table[funcid].arg_pos;
+        int cnt=func_table[funcid].arg_size;
+        bool f=true;
+        _SI* arg_node=cnodelist[0];
+        while (i<cnt)
+        {
+            _SI* expnode=get_nth_child(arg_node,0);
+            if (expnode->val_type_id!=var_table[base+i].var_type)
+            {
+                f=false;
+                break;
+            }
+            i++;
+            if (arg_node->sym_affix_type==1)
+                break;
+            else
+                arg_node=get_nth_child(arg_node,2);
+        }
+        if (i!=cnt) f=false;
+        if (!f) {
+            char tp[0x100];
+            sprintf(tp,"Function \"%s\" is not applicable for arguments",funcname);
+            syntax_error(9,cnodelist[0]->lineno,tp);
+        }
+    }    
+}
+
+MAKE_OP_FUNC(exp_arr,ROOT_LAST_ACTION)
+{
+    int vid=cnodelist[0]->val_type_id;
+    if (type_table[vid].type!=1)
+    {
+        syntax_error(10,cnodelist[0]->lineno,"it is not an array");
+        node->val_type_id=vid;
+    }
+    else
+    {
+        node->val_type_id=type_table[vid]._array.elemtype;
+    }
+}
+
+

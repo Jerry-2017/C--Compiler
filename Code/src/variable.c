@@ -70,6 +70,7 @@ int add_variable(char *var_name,int type_id)
             var_table[vt_cnt].env_id=fid;
             var_table[vt_cnt].name=var_name;
             var_table[vt_cnt].var_type=type_id;
+            fpdec_cnt++;
             return vt_cnt++;
         }
         case ENV_STRUCT_DEF:
@@ -81,7 +82,7 @@ int get_variable_allenv(char *var_name)
 {
     int _scnt=se_cnt;
     int i;
-    while (_scnt>0)
+    while (_scnt>=0)
     {
         for (i=0;i<vt_cnt;i++)
             if (var_table[i].env_type==stack_env[_scnt][0] && var_table[i].env_id==stack_env[_scnt][1])
