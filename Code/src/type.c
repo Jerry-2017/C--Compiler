@@ -104,6 +104,18 @@ int add_func(char *name,int ret_type)
     return ft_cnt++;
 }
 
+void check_func_def()
+{
+    int i;
+    for (i=0;i<ft_cnt;i++)
+        if (!func_table[i].is_def)
+        {
+            char tp[0x100];
+            sprintf(tp,"Undefined function \"%s\"",func_table[i].name);
+            syntax_error(18,func_table[i].dec_line,tp);
+        }
+}
+
 void pass_type(_SI *src,_SI *dst)
 {
     src->val_type_id=dst->val_type_id;

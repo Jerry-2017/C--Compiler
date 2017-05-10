@@ -20,6 +20,7 @@ void init_syntax_action()
     REG_OP_FUNC(func_arg_def,1);
     REG_OP_FUNC(array_def,1);
     REG_OP_FUNC(func_def,1);
+    REG_OP_FUNC(func_dec,1);
 
     REG_OP_FUNC(func_def,2);
 
@@ -123,6 +124,9 @@ MAKE_OP_FUNC(pass_def,1)
 
 MAKE_OP_FUNC(array_def,1)
 {
+    int index_type=cnodelist[2]->val_type_id;
+    if (index_type!=TYPE_INT)
+         syntax_error(12,cnodelist[0]->lineno,"array index is not an integer");
     int size=cnodelist[2]->value.ival;
     cnodelist[0]->val_type_id=add_type_array(node->val_type_id,size);
 }
@@ -170,17 +174,37 @@ MAKE_OP_FUNC(struct_def,ROOT_FIRST_ACTION)
 MAKE_OP_FUNC(func_arg_def,1)
 {
     char *funcname=cnodelist[0]->value.pstr;
-    if (find_func(funcname)!=-1)
+    int fid=find_func(funcname);
+    if (fid!=-1)
     {
-        errorrec=true;
-        char tp[0x100];
-        sprintf(tp,"Redefined function  \"%s\"",funcname);
-        syntax_error(4,cnodelist[0]->lineno,tp);
-        new_env_block();
+        if (func_table[fid].is_def)
+        {
+            errorrec=true;
+            char tp[0x100];
+            sprintf(tp,"Redefined function  \"%s\"",funcname);
+            syntax_error(4,cnodelist[0]->lineno,tp);
+            new_env_block();
+        }
+        else
+        {
+            func_dec_cons=true;
+            if (func_table[fid].ret_type!=node->val_type_id)
+                func_dec_cons=false;
+            node->func_id=fid;
+            new_env_func_dec_check(fid);
+        }
     }
     else
     {
+        func_dec_cons=true;
         int func_id=add_func(funcname,node->val_type_id);
+        if (node->context_relate_id==0)
+            func_table[func_id].is_def=true;
+        else
+        {
+            func_table[func_id].is_def=false;
+            func_table[func_id].dec_line=cnodelist[0]->lineno;
+        }
         node->func_id=func_id;
         new_env_func_param_dec(func_id);
     }
@@ -189,6 +213,13 @@ MAKE_OP_FUNC(func_arg_def,1)
 MAKE_OP_FUNC(func_def,1)
 {
     cnodelist[1]->val_type_id=cnodelist[0]->val_type_id;
+    cnodelist[1]->context_relate_id=0;
+}
+
+MAKE_OP_FUNC(func_dec,1)
+{
+    cnodelist[1]->val_type_id=cnodelist[0]->val_type_id;
+    cnodelist[1]->context_relate_id=1;
 }
 
 MAKE_OP_FUNC(func_def,2)
@@ -211,6 +242,13 @@ MAKE_OP_FUNC(pass_compst,ROOT_LAST_ACTION)
 
 MAKE_OP_FUNC(func_arg_def,ROOT_LAST_ACTION)
 {
+    if (!func_dec_cons)
+    {
+        char tp[0x100];
+        char* func_name=cnodelist[0]->value.pstr;
+        sprintf(tp,"Inconsistent declaration of function \"%s\"",func_name);
+        syntax_error(19,cnodelist[0]->lineno,tp);       
+    }
     exit_env();
 }
 
@@ -400,7 +438,11 @@ MAKE_OP_FUNC(exp_arr,ROOT_LAST_ACTION)
     }
     else
     {
+        int index_type=cnodelist[2]->val_type_id;
+        if (index_type!=TYPE_INT)
+            syntax_error(12,cnodelist[0]->lineno,"array index is not an integer");
         node->val_type_id=type_table[vid]._array.elemtype;
+        node->is_left_val=true;
     }
 }
 

@@ -32,6 +32,8 @@ typedef struct TypeTableItem{
 typedef struct FuncTableItem
 {
     char *name;
+    bool is_def;
+    int dec_line;
     int ret_type;
     int arg_pos;
     int arg_size;
@@ -40,6 +42,8 @@ typedef struct FuncTableItem
 #ifdef __TYPE_C__
 
 int ttcnt;
+
+bool func_dec_cons;
 
 _FI func_table[MAX_FUNC_NUM];
 int ft_cnt;
@@ -57,6 +61,8 @@ extern int TYPE_FLOAT;
 
 extern int ttcnt;
 
+extern bool func_dec_cons;
+
 extern _FI func_table[MAX_FUNC_NUM];
 extern int ft_cnt;
 
@@ -72,6 +78,7 @@ extern int sarg_table_cnt;
 #endif
 
 int add_struct();
+void check_func_def();
 void pass_type(_SI *src,_SI *dst);
 void init_type();
 int add_type();

@@ -17,6 +17,7 @@ void travel_syntax_tree(_SI* node,int depth);
 void travel(_SI* node,int depth);
 int yylex (void);
 
+void destruct();
 void init();
 
 #ifdef __KERNEL_C__

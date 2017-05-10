@@ -57,6 +57,8 @@ typedef struct SymbolItem {
     int compst_func_id;
     int func_id;
 
+    int context_relate_id;
+
     int val_type_id;
     int var_id;
     bool is_left_val;

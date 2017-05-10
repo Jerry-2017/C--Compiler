@@ -39,7 +39,8 @@ enum SyntaxActionType{
     SYN_OP_TYPE(struct_type),
     SYN_OP_TYPE(struct_def),
     SYN_OP_TYPE(pass_type),
-    SYN_OP_TYPE(exp_struct)
+    SYN_OP_TYPE(exp_struct),
+    SYN_OP_TYPE(func_dec)
 };
 
 typedef struct SyntaxActionNode{
@@ -77,6 +78,7 @@ MAKE_OP_FUNC(array_def,1);
 MAKE_OP_FUNC(func_arg_def,1);
 MAKE_OP_FUNC(pass_def,1);
 MAKE_OP_FUNC(func_def,1);
+MAKE_OP_FUNC(func_dec,1);
 
 MAKE_OP_FUNC(func_def,2);
 

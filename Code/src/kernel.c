@@ -15,6 +15,11 @@ void init()
     init_variable();
 }
 
+void destruct()
+{
+    check_func_def();
+}
+
 void travel(_SI* node,int depth)
 {
     //if (node==root)

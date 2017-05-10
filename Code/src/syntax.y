@@ -53,6 +53,7 @@ ExtDefList : ExtDef ExtDefList { $$=add_sym_node(S_EXTDEFLIST,2,$1,$2); }
 
 ExtDef : Specifer ExtDecList SEMI { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(pass_def)); }
         |StructSpecifer SEMI { $$=add_sym_node(S_EXTDEF,2,$1,$2); }
+        |Specifer FunDec SEMI { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(func_dec)); }
         |Specifer FunDec Compst { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(func_def)); }
         ;
 
@@ -99,7 +100,7 @@ Stmt:Exp SEMI { $$=add_sym_node(S_STMT,2,$1,$2); $$->sym_affix_type=0; bind_sym_
         |IF LP Exp RP Stmt ELSE Stmt { $$=add_sym_node(S_STMT,7,$1,$2,$3,$4,$5,$6,$7); $$->sym_affix_type=3; bind_sym_action($$,SYN_OP_TYPE(stmt)); }
         |WHILE LP Exp RP Stmt { $$=add_sym_node(S_STMT,5,$1,$2,$3,$4,$5); $$->sym_affix_type=4; bind_sym_action($$,SYN_OP_TYPE(stmt)); }
         |Def { $$=add_sym_node(S_STMT,1,$1); $$->sym_affix_type=5; bind_sym_action($$,SYN_OP_TYPE(stmt)); };
-        |IF LP Exp RP Stmt %prec THEN { $$=add_sym_node(S_STMT,1,$1); $$->sym_affix_type=6; bind_sym_action($$,SYN_OP_TYPE(stmt)); };
+        |IF LP Exp RP Stmt %prec THEN { $$=add_sym_node(S_STMT,5,$1,$2,$3,$4,$5); $$->sym_affix_type=6; bind_sym_action($$,SYN_OP_TYPE(stmt)); };
 
 DefList:Def DefList{ $$=add_sym_node(S_DEFLIST,2,$1,$2); $$->sym_affix_type=4; }
         | { $$=add_sym_node(S_DEFLIST,0); }
@@ -118,7 +119,7 @@ Exp:Exp ASSIGNOP Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=0; b
         |Exp AND Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
         |Exp OR Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=2; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
         |Exp PLUS Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=3; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
-        |Exp MINUS Exp { $$=add_sym_node(S_EXP,2,$1,$2); $$->sym_affix_type=4; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
+        |Exp MINUS Exp { $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=4; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
         |Exp STAR Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=5; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
         |Exp DIV Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=6; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
         |Exp Relop Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=7; bind_sym_action($$,SYN_OP_TYPE(exp_2_op)); }
@@ -181,6 +182,9 @@ int main(int argc, char** argv)
     if (!errorrec) {
         //travel_syntax_tree(root,0);
         travel (root,0);
+        destruct();
     }
+    printf("\n\n\n");
+
     return 0;
 }

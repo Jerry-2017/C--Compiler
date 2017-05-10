@@ -7,6 +7,7 @@
 #define ENV_BLOCK 0
 #define ENV_FUNC_PARM_DEC 1
 #define ENV_STRUCT_DEF 2
+#define ENV_FUNC_PARM_DEC_CHECK 3
 
 
 #include "../include/common.h"
@@ -60,6 +61,7 @@ int get_variable_allenv(char *var_name);
 
 void new_env_block();
 void new_env_func_param_dec(int funcid);
+void new_env_func_dec_check(int funcid);
 void new_env_struct_def(int structid);
 void exit_env();
 

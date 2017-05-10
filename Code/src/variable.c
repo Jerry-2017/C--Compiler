@@ -26,6 +26,14 @@ void new_env_func_param_dec(int funcid)
     func_table[funcid].arg_pos=vt_cnt;
 }
 
+void new_env_func_dec_check(int funcid)
+{
+    se_cnt++;
+    fpdec_cnt=0;
+    stack_env[se_cnt][0]=ENV_FUNC_PARM_DEC_CHECK;
+    stack_env[se_cnt][1]=funcid;
+}
+
 void new_env_struct_def(int structid)
 {
     se_cnt++;
@@ -46,6 +54,13 @@ void exit_env()
         {
             int fid=stack_env[se_cnt][1];
             func_table[fid].arg_size=fpdec_cnt;
+            break;
+        }
+        case ENV_FUNC_PARM_DEC_CHECK:
+        {
+            int fid=stack_env[se_cnt][1];
+            if ( func_table[fid].arg_size!=fpdec_cnt)
+                func_dec_cons=false;
         }
         case ENV_STRUCT_DEF:
             break;
@@ -76,6 +91,17 @@ int add_variable(char *var_name,int type_id)
             var_table[vt_cnt].var_type=type_id;
             fpdec_cnt++;
             return vt_cnt++;
+        }
+        case ENV_FUNC_PARM_DEC_CHECK:
+        {
+            int fid=stack_env[se_cnt][1];
+            int base=func_table[fid].arg_pos;
+            int vid=base+fpdec_cnt;
+            if (var_table[vid].var_type != type_id || strcmp(var_table[vid].name,var_name)!=0)
+            {
+                func_dec_cons=false;
+            }
+            return base+fpdec_cnt++;
         }
         case ENV_STRUCT_DEF:
         {
