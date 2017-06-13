@@ -1,4 +1,4 @@
-Source-C = ./src/syntax.tab.c ./src/kernel.c ./src/symbol.c ./src/type.c ./src/syntax_op.c ./src/variable.c
+Source-C = ./src/syntax.tab.c ./src/kernel.c ./src/symbol.c ./src/type.c ./src/syntax_op.c ./src/variable.c ./src/inter_op.c
 
 parser: lex syntax 
 	gcc $(Source-C) -lfl -ly -o parser

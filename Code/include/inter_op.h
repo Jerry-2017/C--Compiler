@@ -3,7 +3,7 @@
 #ifndef __INTER_OP_H__
 #define __INTER_OP_H__
 
-typedef enum InterOpType{
+enum InterOpType{
 
     IOP_READ,
     IOP_WRITE,
@@ -17,11 +17,14 @@ typedef enum InterOpType{
     IOP_IF_EQ,
     IOP_IF_NE,
 
+    IOP_GOTO,
+
     IOP_RET,
     IOP_CALL,
     IOP_FUNC,
     IOP_ARG,
     IOP_PARAM,
+    IOP_RETURN,
 
     IOP_ASSIGN,
     IOP_ADD,
@@ -78,10 +81,14 @@ extern int inter_var_pointer;
 
 int inter_new_label();
 
-int inter_label_name(int label_id,char *name);
+int inter_new_var();
+
+int inter_new_op_block(int start_id,int end_id);
 
 int inter_get_variable(int var_id);
 
+void inter_label_name(int label_id,char *name);
+void inter_func_name(int func_id, char *name);
 void inter_var_name(int var_id,char *name);
 
 int add_op(char* op);

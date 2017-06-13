@@ -16,6 +16,7 @@
 #include "type.h"
 #include "kernel.h"
 #include "syntax_op.h"
+#include "inter_op.h"
 
 
 
