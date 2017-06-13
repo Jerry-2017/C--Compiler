@@ -79,6 +79,7 @@ int add_variable(char *var_name,int type_id)
             var_table[vt_cnt].var_type=type_id;
             var_table[vt_cnt].env_type=ENV_BLOCK;            
             var_table[vt_cnt].env_id=stack_env[se_cnt][1];
+            var_table[vt_cnt].inter_var_id=-1;
             return vt_cnt++;
         }
         case ENV_FUNC_PARM_DEC:
@@ -89,6 +90,7 @@ int add_variable(char *var_name,int type_id)
             var_table[vt_cnt].env_id=fid;
             var_table[vt_cnt].name=var_name;
             var_table[vt_cnt].var_type=type_id;
+            var_table[vt_cnt].inter_var_id=-1;
             fpdec_cnt++;
             return vt_cnt++;
         }

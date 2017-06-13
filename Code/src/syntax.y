@@ -184,7 +184,7 @@ int main(int argc, char** argv)
         travel (root,0);
         destruct();
     }
-    printf("\n\n\n");
+    printf("\n");
 
     return 0;
 }

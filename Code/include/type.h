@@ -37,6 +37,8 @@ typedef struct FuncTableItem
     int ret_type;
     int arg_pos;
     int arg_size;
+
+    int inter_func_id;
 }_FI;
 
 #ifdef __TYPE_C__

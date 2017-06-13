@@ -19,6 +19,7 @@ typedef struct VariableTableItem
     int env_type;
     int env_id;
     int next_var;
+    int inter_var_id; //for inter code
     union {
         struct {
             int base;
