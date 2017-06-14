@@ -238,13 +238,13 @@ void inter_func_name(int func_id, char *name)
 
 int inter_add_op(char* op)
 {
-    strcpy((char*)&inter_op_char[inter_op_list_pointer],op);
-    printf("%s\n",op);
+    strcpy(inter_op_char[inter_op_list_pointer],op);
     inter_op_list[inter_op_list_pointer][0]=-1;
     inter_op_list[inter_op_list_pointer][1]=-1;
     inter_op_table[inter_op_table_pointer].op_start=inter_op_list_pointer;
     inter_op_table[inter_op_table_pointer].op_end=inter_op_list_pointer;
     inter_op_table[inter_op_table_pointer].type=3;
+    //printf("%s %d %d\n",inter_op_char[inter_op_list_pointer],inter_op_list_pointer,inter_op_table_pointer);
     inter_op_list_pointer++;
     return inter_op_table_pointer++;
 }
@@ -447,14 +447,18 @@ int inter_make_op(int inter_op_type,int num, ...)
             result_op=op_num;
             break;
     }
-    int result_block=inter_new_op_block(result_op,result_op);
-    return result_block;
+    return result_op;
 }   
 
-void inter_output(int root)
+void inter_output(int inter_root)
 {
-    if (root==-1) return;
-    int s=inter_op_table[root].op_start,e=inter_op_table[root].op_end;
+    if (inter_root==-1) return;
+    int s=inter_op_table[inter_root].op_start,e=inter_op_table[inter_root].op_end;
+    int j;
+    /**printf("********");
+    for (j=0;j<20;j++)
+        printf("%d : %s %d\n",j,inter_op_char[j],inter_op_list[j][0]);
+    printf("********");**/
     int i=s;
     while (i!=-1)
     {
