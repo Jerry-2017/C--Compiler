@@ -16,7 +16,6 @@ int join_inter_op_b(int blk_id,int num,...)
     int k[16];
     int i;
     int sid=-1,eid=-1;
-    int eid=inter_op_table[k[num-1]].op_end;
     int s1id,e1id;
     for (i=0;i<num;i++)
     {
@@ -41,7 +40,6 @@ int join_inter_op_bl(int blk_id,int num,int *l)
 {
     int i;
     int sid=-1,eid=-1;
-    int eid=inter_op_table[k[num-1]].op_end;
     int s1id,e1id;
     for (i=0;i<num;i++)
     {
@@ -65,7 +63,6 @@ int join_inter_op_l(int num,int *l)
 {
     int i;
     int sid=-1,eid=-1;
-    int eid=inter_op_table[k[num-1]].op_end;
     int s1id,e1id;
     for (i=0;i<num;i++)
     {
@@ -90,7 +87,6 @@ int join_inter_op(int num,...)
     int k[16];
     int i;
     int sid=-1,eid=-1;
-    int eid=inter_op_table[k[num-1]].op_end;
     int s1id,e1id;
     for (i=0;i<num;i++)
     {
@@ -173,7 +169,7 @@ void inter_var_name(int var_id, char * name)
     else if (inter_op_table[var_id].type==4)
     {
         int rval=inter_op_table[var_id].ival;
-        sprintf(name,"#%d",rvar);
+        sprintf(name,"#%d",rval);
     }
     return ;
 }
@@ -192,7 +188,7 @@ void inter_func_name(int func_id, char *name)
     return ;
 }
 
-int add_op(char* op)
+int inter_add_op(char* op)
 {
     strcpy((char*)&inter_op_char[inter_op_list_pointer],op);
     inter_op_list[inter_op_list_pointer][0]=-1;
@@ -203,7 +199,7 @@ int add_op(char* op)
     return inter_op_table_pointer++;
 }
 
-int make_inter_op(int inter_op_type,int num, ...)
+int inter_make_op(int inter_op_type,int num, ...)
 {
     
     va_list valist;
@@ -242,7 +238,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             inter_var_name(var_id2,vars2);
             inter_label_name(label,labels);
             sprintf(op_str,"IF %s %s %s GOTO %s",vars1,relop,vars2,labels);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
         
@@ -251,7 +247,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             label=k[0];
             inter_label_name(label,labels);
             sprintf(op_str,"LABEL %s :",labels);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
 
@@ -260,7 +256,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             label=k[0];
             inter_label_name(label,labels);
             sprintf(op_str,"GOTO %s :",labels);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;            
             break;
 
@@ -279,7 +275,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             var_id1=k[0];
             inter_var_name(var_id1,vars1);
             sprintf(op_str,"%s %s",op_name,vars1);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
 
@@ -288,7 +284,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             func_id=k[0];
             inter_func_name(func_id,funcs);
             sprintf(op_str,"FUNCTION %s :",funcs);
-            int op_num=add_op(op_str);
+            int op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
 
@@ -310,7 +306,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             inter_var_name(var_id2,vars2);
             inter_var_name(var_id3,vars3);
             sprintf(op_str,"%s := %s %s %s",vars1,vars2,op_name,vars3);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
 
@@ -321,7 +317,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             inter_var_name(var_id1,vars1);
             inter_func_name(func_id,funcs);
             sprintf(op_str,"%s := CALL %s",vars1,funcs);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
 
@@ -331,7 +327,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             inter_var_name(var_id1,vars1);
             inter_var_name(var_id2,vars2);
             sprintf(op_str,"%s := %s",vars1,vars2);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
 
@@ -342,7 +338,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             inter_var_name(var_id1,vars1);
             inter_var_name(var_id2,vars2);
             sprintf(op_str,"%s := & %s",vars1,vars2);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
 
@@ -353,7 +349,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             inter_var_name(var_id1,vars1);
             inter_var_name(var_id2,vars2);
             sprintf(op_str,"*%s := %s",vars1,vars2);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
 
@@ -365,7 +361,7 @@ int make_inter_op(int inter_op_type,int num, ...)
             inter_var_name(var_id1,vars1);
             inter_var_name(var_id2,vars2);
             sprintf(op_str,"%s := *%s",vars1,vars2);
-            op_num=add_op(op_str);
+            op_num=inter_add_op(op_str);
             result_op=op_num;
             break;
     }

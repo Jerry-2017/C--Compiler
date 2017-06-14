@@ -10,7 +10,11 @@ syntax:
 	mv ./syntax.tab.h ./include/
 	mv ./syntax.tab.c ./src/
 clean:
-	rm ./src/lex.yy.c ./src/syntax.tab.c ./include/syntax.tab.h syntax.output parser ./lexical_result.txt syntax.output
+	rm -rf ./src/lex.yy.c ./src/syntax.tab.c ./include/syntax.tab.h syntax.output parser ./lexical_result.txt syntax.output
+commit: clean
+	git add -A
+	git commit
+	git push
 testl: parser
 	rm -f lexical_result.txt
 	find ./lexical_gramma_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> lexical_result.txt

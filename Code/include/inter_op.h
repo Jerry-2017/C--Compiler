@@ -50,7 +50,7 @@ typedef struct inter_op_node{
         };
         struct {
             int ival;
-        }
+        };
     };
     struct{
         int op_start;
@@ -83,7 +83,7 @@ extern int inter_var_pointer;
 #endif
 
 int inter_new_label();
-
+int inter_new_const_int(int ival);
 int inter_new_var();
 
 int join_inter_op(int num,...);
@@ -99,8 +99,8 @@ void inter_label_name(int label_id,char *name);
 void inter_func_name(int func_id, char *name);
 void inter_var_name(int var_id,char *name);
 
-int add_op(char* op);
+int inter_add_op(char* op);
 
-int make_inter_op(int inter_op_type,int num, ...);
+int inter_make_op(int inter_op_type,int num, ...);
 
 #endif

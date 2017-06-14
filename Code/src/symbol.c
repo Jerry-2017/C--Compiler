@@ -142,7 +142,7 @@ _SI* add_sym_node(int sym_type, int num, ...)
     _SI *psi,*cpsi=&symbol_sequence[symbols++];  
     int i;
     for (i=0;i<MAX_CONCURRENT_SYNTAX_OP;i++)
-        cpsi->action_id.action_id[i]=-1;
+        cpsi->action_id[i]=-1;
     cpsi->reverse_scan=false;
     cpsi->sym_type=sym_type;
     cpsi->var_id=-1;
