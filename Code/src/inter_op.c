@@ -7,10 +7,13 @@ void init_inter_op()
     inter_op_list_pointer=0;
     inter_op_table_pointer=0;
     inter_var_pointer=0;
+    inter_label_pointer=0;
 }
 
 int join_inter_op_b(int blk_id,int num,...)
 {
+    if (blk_id==-1)
+        printf("receive -1 block_id\n");
     va_list valist;
     va_start(valist,num);
     int k[16];
@@ -20,64 +23,89 @@ int join_inter_op_b(int blk_id,int num,...)
     for (i=0;i<num;i++)
     {
         k[i]=va_arg(valist, int);
-        if (sid==-1 && inter_op_table[k[i]].op_start)
+        if (k[i]==-1) continue;
+        if (inter_op_table[k[i]].op_start!=-1)
         {
-            sid=s1id;
+            s1id=inter_op_table[k[i]].op_start;
+            if (sid==-1)
+                sid=s1id;
         }
-        if (i!=0 && e1id!=-1)
+        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1)
+        {
             eid=inter_op_table[k[i-1]].op_end;
-        if (i!=0 && inter_op_table[k[i]].op_start!=-1)
+            e1id=eid;
+        }
+        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1 && inter_op_table[k[i]].op_start!=-1)
         {
-            inter_op_list[e1id][0]=inter_op_table[k[i]].op_start;
+            inter_op_list[e1id][0]=s1id;
         }
     }
+    if (inter_op_table[k[num-1]].op_end!=-1)
+        eid=inter_op_table[k[num-1]].op_end;
     inter_op_table[blk_id].op_start=sid;
     inter_op_table[blk_id].op_end=eid;
     return blk_id;
 }
 
-int join_inter_op_bl(int blk_id,int num,int *l)
+int join_inter_op_bl(int blk_id,int num,int *k)
 {
     int i;
     int sid=-1,eid=-1;
     int s1id,e1id;
     for (i=0;i<num;i++)
     {
-        if (sid==-1 && inter_op_table[l[i]].op_start)
+        if (k[i]==-1) continue;
+        if (inter_op_table[k[i]].op_start!=-1)
         {
-            sid=s1id;
+            s1id=inter_op_table[k[i]].op_start;
+            if (sid==-1)
+                sid=s1id;
         }
-        if (i!=0 && e1id!=-1)
-            eid=inter_op_table[l[i-1]].op_end;
-        if (i!=0 && inter_op_table[l[i]].op_start!=-1)
+        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1)
         {
-            inter_op_list[e1id][0]=inter_op_table[l[i]].op_start;
+            eid=inter_op_table[k[i-1]].op_end;
+            e1id=eid;
+        }
+        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1 && inter_op_table[k[i]].op_start!=-1)
+        {
+            inter_op_list[e1id][0]=s1id;
         }
     }
+    if (inter_op_table[k[num-1]].op_end!=-1)
+        eid=inter_op_table[k[num-1]].op_end;
     inter_op_table[blk_id].op_start=sid;
     inter_op_table[blk_id].op_end=eid;
     return blk_id;
 }
 
-int join_inter_op_l(int num,int *l)
+int join_inter_op_l(int num,int *k)
 {
     int i;
     int sid=-1,eid=-1;
     int s1id,e1id;
     for (i=0;i<num;i++)
     {
-        if (sid==-1 && inter_op_table[l[i]].op_start)
+        if (k[i]==-1) continue;
+        if (inter_op_table[k[i]].op_start!=-1)
         {
-            sid=s1id;
+            s1id=inter_op_table[k[i]].op_start;
+            if (sid==-1)
+                sid=s1id;
         }
-        if (i!=0 && e1id!=-1)
-            eid=inter_op_table[l[i-1]].op_end;
-        if (i!=0 && inter_op_table[l[i]].op_start!=-1)
+        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1)
         {
-            inter_op_list[e1id][0]=inter_op_table[l[i]].op_start;
+            eid=inter_op_table[k[i-1]].op_end;
+            e1id=eid;
+        }
+        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1 && inter_op_table[k[i]].op_start!=-1)
+        {
+            inter_op_list[e1id][0]=s1id;
         }
     }
-    return inter_new_op_block(sid,eid);
+    if (inter_op_table[k[num-1]].op_end!=-1)
+        eid=inter_op_table[k[num-1]].op_end;
+    if (sid==-1 || eid==-1) return -1;
+    else return inter_new_op_block(sid,eid);
 }
 
 int join_inter_op(int num,...)
@@ -91,18 +119,27 @@ int join_inter_op(int num,...)
     for (i=0;i<num;i++)
     {
         k[i]=va_arg(valist, int);
-        if (sid==-1 && inter_op_table[k[i]].op_start)
+        if (k[i]==-1) continue;
+        if (inter_op_table[k[i]].op_start!=-1)
         {
-            sid=s1id;
+            s1id=inter_op_table[k[i]].op_start;
+            if (sid==-1)
+                sid=s1id;
         }
-        if (i!=0 && e1id!=-1)
-            eid=inter_op_table[k[i-1]].op_end;
-        if (i!=0 && inter_op_table[k[i]].op_start!=-1)
+        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1)
         {
-            inter_op_list[e1id][0]=inter_op_table[k[i]].op_start;
+            eid=inter_op_table[k[i-1]].op_end;
+            e1id=eid;
+        }
+        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1 && inter_op_table[k[i]].op_start!=-1)
+        {
+            inter_op_list[e1id][0]=s1id;
         }
     }
-    return inter_new_op_block(sid,eid);
+    if (inter_op_table[k[num-1]].op_end!=-1)
+        eid=inter_op_table[k[num-1]].op_end;
+    if (sid==-1 || eid==-1) return -1;
+    else return inter_new_op_block(sid,eid);
 }
 
 int inter_new_op_block(int start_id,int end_id)
@@ -117,6 +154,8 @@ int inter_new_const_int(int ival)
 {
     inter_op_table[inter_op_table_pointer].type=4;
     inter_op_table[inter_op_table_pointer].ival=ival;
+    inter_op_table[inter_op_table_pointer].op_start=-1;
+    inter_op_table[inter_op_table_pointer].op_end=-1;
     return inter_op_table_pointer++;    
 }
 
@@ -149,19 +188,24 @@ int inter_new_var()
 {
     inter_op_table[inter_op_table_pointer].type=0;
     inter_op_table[inter_op_table_pointer].var_id=inter_var_pointer++;
+    inter_op_table[inter_op_table_pointer].op_start=-1;
+    inter_op_table[inter_op_table_pointer].op_end=-1;
     return inter_op_table_pointer++;
 }
 
 int inter_new_label()
 {
     inter_op_table[inter_op_table_pointer].type=1;
-    inter_op_table[inter_op_table_pointer].label_id=inter_var_pointer++;
+    inter_op_table[inter_op_table_pointer].label_id=inter_label_pointer++;
+    inter_op_table[inter_op_table_pointer].op_start=-1;
+    inter_op_table[inter_op_table_pointer].op_end=-1;
     return inter_op_table_pointer++;
 }
 
 void inter_var_name(int var_id, char * name)
 {
-    if (inter_op_table[var_id].type==1)
+    sprintf(name,"None");
+    if (inter_op_table[var_id].type==0)
     {
         int rvar_id=inter_op_table[var_id].var_id;
         sprintf(name,"_t%d",rvar_id);
@@ -176,8 +220,12 @@ void inter_var_name(int var_id, char * name)
 
 void inter_label_name(int label_id, char * name)
 {
-    int rlabel_id=inter_op_table[label_id].label_id;
-    sprintf(name,"_l%d",rlabel_id);
+    sprintf(name,"None");
+    if (inter_op_table[label_id].type==1)
+    {
+        int rlabel_id=inter_op_table[label_id].label_id;
+        sprintf(name,"_l%d",rlabel_id);
+    }
     return ;
 }
 
@@ -191,17 +239,19 @@ void inter_func_name(int func_id, char *name)
 int inter_add_op(char* op)
 {
     strcpy((char*)&inter_op_char[inter_op_list_pointer],op);
+    printf("%s\n",op);
     inter_op_list[inter_op_list_pointer][0]=-1;
     inter_op_list[inter_op_list_pointer][1]=-1;
     inter_op_table[inter_op_table_pointer].op_start=inter_op_list_pointer;
     inter_op_table[inter_op_table_pointer].op_end=inter_op_list_pointer;
+    inter_op_table[inter_op_table_pointer].type=3;
     inter_op_list_pointer++;
     return inter_op_table_pointer++;
 }
 
 int inter_make_op(int inter_op_type,int num, ...)
 {
-    
+    //printf("inter make %d\n",inter_op_type);
     va_list valist;
     va_start(valist,num);
     int k[10];
@@ -211,28 +261,41 @@ int inter_make_op(int inter_op_type,int num, ...)
     char *op_name,*relop;
     char op_str[MAX_VAR_LEN];
     int result_op=-1,op_num;
-
+    //printf("num %d\n",num);
     char vars1[MAX_VAR_LEN],vars2[MAX_VAR_LEN],labels[MAX_VAR_LEN],vars3[MAX_VAR_LEN],funcs[MAX_VAR_LEN];
     int var_id1,var_id2,var_id3,label,func_id;
+    int pass_flag=false;
     switch (inter_op_type)
     {
         // EXP1 EXP2 TRUE
         case IOP_IF_LEQ:
-            relop="<=";
+            if (!pass_flag)
+                relop="<=";
+            pass_flag=true;
         case IOP_IF_L:
-            relop="<";
+            if (!pass_flag)
+                relop="<";
+            pass_flag=true;
         case IOP_IF_G:
-            relop=">";
+            if (!pass_flag)
+                relop=">";
+            pass_flag=true;
         case IOP_IF_GEQ:
-            relop=">=";
+            if (!pass_flag)
+                relop=">=";
+            pass_flag=true;
         case IOP_IF_EQ:
-            relop="==";    
+            if (!pass_flag)
+                relop="==";    
+            pass_flag=true;
         case IOP_IF_NE:
-            relop="!=";      
+            if (!pass_flag)
+                relop="!=";      
+            pass_flag=true;
             
             var_id1=k[0];
             var_id2=k[1];
-            label=k[3];
+            label=k[2];
 
             inter_var_name(var_id1,vars1);
             inter_var_name(var_id2,vars2);
@@ -262,15 +325,25 @@ int inter_make_op(int inter_op_type,int num, ...)
 
         // VAR
         case IOP_ARG:
-            op_name="ARG";
+            if (!pass_flag)
+                op_name="ARG";
+            pass_flag=true;
         case IOP_PARAM:
-            op_name="PARAM";
+            if (!pass_flag)
+                op_name="PARAM";
+            pass_flag=true;
         case IOP_RETURN:
-            op_name="RETURN";
+            if (!pass_flag)
+                op_name="RETURN";
+            pass_flag=true;
         case IOP_READ:
-            op_name="READ";
+            if (!pass_flag)
+                op_name="READ";
+            pass_flag=true;
         case IOP_WRITE:
-            op_name="WRITE";
+            if (!pass_flag)
+                op_name="WRITE";
+            pass_flag=true;
 
             var_id1=k[0];
             inter_var_name(var_id1,vars1);
@@ -290,13 +363,21 @@ int inter_make_op(int inter_op_type,int num, ...)
 
         //VAR1 VAR2 VAR3
         case IOP_ADD:
-            op_name="+";
+            if (!pass_flag)
+                op_name="+";
+            pass_flag=true;
         case IOP_DIV:
-            op_name="/";
+            if (!pass_flag)
+                op_name="/";
+            pass_flag=true;
         case IOP_MUL:
-            op_name="*";
+            if (!pass_flag)
+                op_name="*";
+            pass_flag=true;
         case IOP_MINUS:
-            op_name="-";
+            if (!pass_flag)
+                op_name="-";
+            pass_flag=true;
 
             var_id1=k[0];
             var_id2=k[1];
@@ -324,6 +405,7 @@ int inter_make_op(int inter_op_type,int num, ...)
         case IOP_ASSIGN:
             var_id1=k[0];
             var_id2=k[1];
+            //printf("%d %d\n",inter_op_table[var_id1].type,inter_op_table[var_id2].type);
             inter_var_name(var_id1,vars1);
             inter_var_name(var_id2,vars2);
             sprintf(op_str,"%s := %s",vars1,vars2);
@@ -368,3 +450,18 @@ int inter_make_op(int inter_op_type,int num, ...)
     int result_block=inter_new_op_block(result_op,result_op);
     return result_block;
 }   
+
+void inter_output(int root)
+{
+    if (root==-1) return;
+    int s=inter_op_table[root].op_start,e=inter_op_table[root].op_end;
+    int i=s;
+    while (i!=-1)
+    {
+        printf("%s\n",inter_op_char[i]);
+        if (i==e) break;
+        i=inter_op_list[i][0];
+    }
+    return;    
+}
+

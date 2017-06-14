@@ -69,6 +69,7 @@ char inter_op_char[MAX_INTER_OP][MAX_VAR_LEN];
 _ION inter_op_table[MAX_INTER_OP];
 int inter_op_list_pointer;
 int inter_op_table_pointer;
+int inter_label_pointer;
 int inter_var_pointer;
 #else
 
@@ -78,18 +79,20 @@ extern char inter_op_char[MAX_INTER_OP][32];
 extern _ION inter_op_table[MAX_INTER_OP];
 extern int inter_op_list_pointer;
 extern int inter_op_table_pointer;
+extern int inter_label_pointer;
 extern int inter_var_pointer;
 
 #endif
+void init_inter_op();
 
 int inter_new_label();
 int inter_new_const_int(int ival);
 int inter_new_var();
 
 int join_inter_op(int num,...);
-int join_inter_op_l(int num,int *l);
+int join_inter_op_l(int num,int *k);
 int join_inter_op_b(int blk_id,int num,...);
-int join_inter_op_bl(int blk_id,int num,int *l);
+int join_inter_op_bl(int blk_id,int num,int *k);
 
 int inter_new_op_block(int start_id,int end_id);
 
@@ -102,5 +105,7 @@ void inter_var_name(int var_id,char *name);
 int inter_add_op(char* op);
 
 int inter_make_op(int inter_op_type,int num, ...);
+
+void inter_output(int root);
 
 #endif

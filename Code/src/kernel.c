@@ -13,6 +13,7 @@ void init()
     init_type();
     //printf("start to init variable\n");
     init_variable();
+    init_inter_op();
 }
 
 void destruct()
@@ -42,9 +43,9 @@ void travel(_SI* node,int depth)
     }
 
     cnt=node->cldno;
-    cnodelist=nl;
     for (j=0;j<MAX_CONCURRENT_SYNTAX_OP;j++)
     {
+        cnodelist=nl;
         if (node->action_id[j]==-1)
             break;
         do_syntax_action(node->action_id[j],ROOT_FIRST_ACTION,node);
@@ -57,9 +58,9 @@ void travel(_SI* node,int depth)
 
             for (i=cnt-1;i>=0;i--)
             {
-                cnodelist=nl;
                 for (j=0;j<MAX_CONCURRENT_SYNTAX_OP;j++)
                 {
+                    cnodelist=nl;
                     if (node->action_id[j]==-1)
                         break;
                     do_syntax_action(node->action_id[j],i+1,node);
@@ -72,9 +73,9 @@ void travel(_SI* node,int depth)
             for (i=0;i<cnt;i++)
             {
                 travel(nl[i],depth+1);
-                cnodelist=nl;
                 for (j=0;j<MAX_CONCURRENT_SYNTAX_OP;j++)
                 {
+                    cnodelist=nl;
                     if (node->action_id[j]==-1)
                         break;
                     do_syntax_action(node->action_id[j],i+1,node);

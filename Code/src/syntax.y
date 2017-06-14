@@ -44,21 +44,21 @@ mDef1 : VarDef COMMA mDef1 | VarDef
 // Definition of variable
 VarDef : TYPE ID */
 
-Program : ExtDefList { $$=add_sym_node(S_PROGRAM,1,$1); root=$$; }
+Program : ExtDefList { $$=add_sym_node(S_PROGRAM,1,$1); root=$$;  }
         ;
 
-ExtDefList : ExtDef ExtDefList { $$=add_sym_node(S_EXTDEFLIST,2,$1,$2); }
+ExtDefList : ExtDef ExtDefList { $$=add_sym_node(S_EXTDEFLIST,2,$1,$2);  }
         | { $$=add_sym_node(S_EXTDEFLIST,0); }
         ;
 
-ExtDef : Specifer ExtDecList SEMI { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(pass_def)); }
+ExtDef : Specifer ExtDecList SEMI { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(pass_def));  }
         |StructSpecifer SEMI { $$=add_sym_node(S_EXTDEF,2,$1,$2); }
         |Specifer FunDec SEMI { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(func_dec)); }
         |Specifer FunDec Compst { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(func_def)); }
         ;
 
-ExtDecList : VarDec { $$=add_sym_node(S_EXTDECLIST,1,$1); }
-        |VarDec COMMA ExtDecList { $$=add_sym_node(S_EXTDECLIST,3,$1,$2,$3); }
+ExtDecList : VarDec { $$=add_sym_node(S_EXTDECLIST,1,$1);  }
+        |VarDec COMMA ExtDecList { $$=add_sym_node(S_EXTDECLIST,3,$1,$2,$3);  }
         ;
 
 Specifer : TYPE { $$=add_sym_node(S_SPECIFER,1,$1); bind_sym_action($$,SYN_OP_TYPE(basic_type)); }
@@ -84,7 +84,7 @@ FunDec:ID LP VarList RP { $$=add_sym_node(S_FUNDEC,4,$1,$2,$3,$4); $$->sym_affix
 VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); } // no need to add action
         |ParamDec { $$=add_sym_node(S_VARLIST,1,$1);  } // no need to add action
         ;
-ParamDec:Specifer VarDec { $$=add_sym_node(S_PARAMDEC,2,$1,$2); bind_sym_action($$,SYN_OP_TYPE(pass_def)); }
+ParamDec:Specifer VarDec { $$=add_sym_node(S_PARAMDEC,2,$1,$2); bind_sym_action($$,SYN_OP_TYPE(pass_def));  }
         ;
 
 
@@ -106,7 +106,7 @@ DefList:Def DefList{ $$=add_sym_node(S_DEFLIST,2,$1,$2); $$->sym_affix_type=4; }
         | { $$=add_sym_node(S_DEFLIST,0); }
         ;
 Def:Specifer DecList SEMI
-		{ $$=add_sym_node(S_DEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(pass_def));}
+		{ $$=add_sym_node(S_DEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(pass_def)); }
         ;
 DecList:Dec { $$=add_sym_node(S_DECLIST,1,$1); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(pass_declist)); }
         |Dec COMMA DecList { $$=add_sym_node(S_DECLIST,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(pass_declist)); }
@@ -185,6 +185,6 @@ int main(int argc, char** argv)
         destruct();
     }
     printf("\n");
-
+    inter_output(root->inter_op_blk_id);
     return 0;
 }
