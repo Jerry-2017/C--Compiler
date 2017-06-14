@@ -79,7 +79,7 @@ VarDec:ID { $$=add_sym_node(S_VARDEC,1,$1); bind_sym_action($$,SYN_OP_TYPE(var_d
         | VarDec LB Int RB { $$=add_sym_node(S_VARDEC,4,$1,$2,$3,$4); $$->reverse_scan=true; bind_sym_action($$,SYN_OP_TYPE(array_def)); }
         ;
 FunDec:ID LP VarList RP { $$=add_sym_node(S_FUNDEC,4,$1,$2,$3,$4); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(func_arg_def)); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); }
-        |ID LP RP { $$=add_sym_node(S_FUNDEC,3,$1,$2,$3); $$->sym_affix_type=1; }
+        |ID LP RP { $$=add_sym_node(S_FUNDEC,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(func_arg_def)); }
         ;
 VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); } // no need to add action
         |ParamDec { $$=add_sym_node(S_VARLIST,1,$1); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); } // no need to add action
@@ -126,8 +126,8 @@ Exp:Exp ASSIGNOP Exp{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=0; b
         |LP Exp RP{ $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(exp_1_op)); }
         |MINUS Exp %prec NEG { $$=add_sym_node(S_EXP,2,$1,$2); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(exp_1_op)); }
         |NOT Exp { $$=add_sym_node(S_EXP,2,$1,$2); $$->sym_affix_type=2; bind_sym_action($$,SYN_OP_TYPE(exp_1_op)); }
-        |ID LP Args RP { $$=add_sym_node(S_EXP,4,$1,$2,$3,$4); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(exp_func_call));}
-        |ID LP RP { $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(exp_func_call)); }
+        |ID LP Args RP { $$=add_sym_node(S_EXP,4,$1,$2,$3,$4); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(exp_func_call)); }
+        |ID LP RP { $$=add_sym_node(S_EXP,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(exp_func_call));}
         |Exp LB Exp RB { $$=add_sym_node(S_EXP,4,$1,$2,$3,$4); bind_sym_action($$,SYN_OP_TYPE(exp_arr)); }
         |Exp DOT ID  { $$=add_sym_node(S_EXP,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(exp_struct)); }
         |ID { $$=add_sym_node(S_EXP,1,$1); bind_sym_action($$,SYN_OP_TYPE(var_ref));}

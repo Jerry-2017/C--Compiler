@@ -10,7 +10,7 @@ syntax:
 	mv ./syntax.tab.h ./include/
 	mv ./syntax.tab.c ./src/
 clean:
-	rm -rf ./src/lex.yy.c ./src/syntax.tab.c ./include/syntax.tab.h syntax.output parser ./lexical_result.txt syntax.output
+	rm -rf ./src/lex.yy.c ./src/syntax.tab.c ./include/syntax.tab.h syntax.output parser ./*_result.txt syntax.output
 commit: clean
 	git add -A
 	git commit
@@ -18,9 +18,13 @@ commit: clean
 testl: parser
 	rm -f lexical_result.txt
 	find ./lexical_gramma_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> lexical_result.txt
-test: parser
-	rm -f lexical_result.txt
-	find ./syntax_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> lexical_result.txt
+tests: parser
+	rm -f syntax_result.txt
+	find ./syntax_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> sytax_result.txt
+testi: parser
+	rm -f intercode_result.txt
+	find ./intercode_testcase/ -name "*.in" | sort | xargs -i -t ./parser {} >> intercode_result.txt
+
 calc:
 	find  ./ -name "*.c" | xargs wc -l
 	find  ./ -name "*.h" | xargs wc -l

@@ -119,8 +119,8 @@ MAKE_OP_FUNC(pass_compst,ROOT_FIRST_ACTION)
         //printf("base %d size %d\n",base,cnt);
         for (i=0;i<cnt;i++)
         {
-            //printf("new var %s\n",var_table[i].name);
-            add_variable(var_table[i].name,var_table[i].var_type);
+            //printf("new var %s\n",var_table[base+i].name);
+            add_variable(var_table[base+i].name,var_table[base+i].var_type);
         }
     }
     cnodelist[0]->func_id=node->func_id;
@@ -292,7 +292,7 @@ MAKE_OP_FUNC(pass_var_dec,ROOT_LAST_ACTION)
 MAKE_OP_FUNC(func_def,ROOT_LAST_ACTION)
 {
     int tpv1,tpv2,tpv3,tpv4,tpv5;
-    tpv1=inter_get_func(cnodelist[2]->func_id);
+    tpv1=inter_get_func(cnodelist[1]->func_id);
     tpv2=inter_make_op(IOP_FUNC,1,tpv1);
     tpv3=cnodelist[1]->inter_op_blk_id;
     tpv4=cnodelist[2]->inter_op_blk_id;
@@ -587,6 +587,8 @@ MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION)
 {
     char* funcname=cnodelist[0]->value.pstr;
     int funcid=find_func(funcname);
+    int inter_arg[32],tpv1,tpv2,tpv3;
+    int built_in_func=false;
     if (funcid==-1)
     {
         char tp[0x100];
@@ -601,13 +603,17 @@ MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION)
             syntax_error(2,cnodelist[0]->lineno,tp);
         }
     }
-    else if (node->sym_affix_type==0)
+    else if (node->sym_affix_type==0 || node->sym_affix_type==1)
     {
+        if (funcid==inter_read_func_id || funcid==inter_write_func_id)
+            built_in_func=1;
         int i=0;
         int base=func_table[funcid].arg_pos;
         int cnt=func_table[funcid].arg_size;
         bool f=true;
         _SI* arg_node=cnodelist[2];
+
+
         while (i<cnt)
         {
             _SI* expnode=get_nth_child(arg_node,1);
@@ -616,6 +622,13 @@ MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION)
                 f=false;
                 break;
             }
+            tpv1=expnode->inter_op_blk_id;
+            if (!built_in_func)
+            {
+                tpv2=inter_make_op(IOP_ARG,1,tpv1);
+                inter_arg[2*cnt-i-1]=tpv2;
+            }
+            inter_arg[i]=tpv1;
             i++;
             if (arg_node->sym_affix_type==1 || i==cnt)
                 break;
@@ -624,11 +637,37 @@ MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION)
                 arg_node=get_nth_child(arg_node,3);
             }
         }
-        if (i!=cnt || arg_node->sym_affix_type==0) f=false;
+        if (cnt!=0 || node->sym_affix_type!=1) if (i!=cnt || arg_node->sym_affix_type==0) f=false;
         if (!f) {
             char tp[0x100];
             sprintf(tp,"Function \"%s\" is not applicable for arguments",funcname);
             syntax_error(9,cnodelist[0]->lineno,tp);
+        }
+        else
+        {
+            if (built_in_func)
+            {
+                if (funcid==inter_read_func_id)
+                {
+                    tpv1=inter_new_var();
+                    tpv2=inter_make_op(IOP_READ,1,tpv1);
+                    join_inter_op_b(tpv1,1,tpv2);
+                    node->inter_op_blk_id=tpv1;
+                }
+                else
+                {
+                    inter_arg[1]=inter_make_op(IOP_WRITE,1,inter_arg[0]);
+                    node->inter_op_blk_id=join_inter_op_l(2,inter_arg);
+
+                }
+            }
+            else
+            {
+                tpv1=inter_get_func(funcid);
+                tpv2=inter_new_var();
+                inter_arg[2*cnt]=inter_make_op(IOP_CALL,2,tpv2,tpv1);
+                node->inter_op_blk_id=join_inter_op_bl(tpv2,2*cnt+1,inter_arg);
+            }
         }
     }    
 }

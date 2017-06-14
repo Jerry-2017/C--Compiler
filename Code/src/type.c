@@ -101,6 +101,7 @@ int add_func(char *name,int ret_type)
 {
     func_table[ft_cnt].name=name;
     func_table[ft_cnt].ret_type=ret_type;
+    func_table[ft_cnt].inter_func_id=-1;
     return ft_cnt++;
 }
 

@@ -8,140 +8,85 @@ void init_inter_op()
     inter_op_table_pointer=0;
     inter_var_pointer=0;
     inter_label_pointer=0;
-    inter_read_func_id=add_func("read",TYPE_INT);
-    inter_write_func_id=add_func("write",TYPE_INT);
-}
 
-int join_inter_op_b(int blk_id,int num,...)
-{
-    if (blk_id==-1)
-        printf("receive -1 block_id\n");
-    va_list valist;
-    va_start(valist,num);
-    int k[16];
-    int i;
-    int sid=-1,eid=-1;
-    int s1id,e1id;
-    for (i=0;i<num;i++)
-    {
-        k[i]=va_arg(valist, int);
-        if (k[i]==-1) continue;
-        if (inter_op_table[k[i]].op_start!=-1)
-        {
-            s1id=inter_op_table[k[i]].op_start;
-            if (sid==-1)
-                sid=s1id;
-        }
-        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1)
-        {
-            eid=inter_op_table[k[i-1]].op_end;
-            e1id=eid;
-        }
-        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1 && inter_op_table[k[i]].op_start!=-1)
-        {
-            inter_op_list[e1id][0]=s1id;
-        }
-    }
-    if (inter_op_table[k[num-1]].op_end!=-1)
-        eid=inter_op_table[k[num-1]].op_end;
-    inter_op_table[blk_id].op_start=sid;
-    inter_op_table[blk_id].op_end=eid;
-    return blk_id;
+    inter_read_func_id=add_func("read",TYPE_INT);
+    func_table[inter_read_func_id].is_def=true;
+    new_env_func_param_dec(inter_read_func_id);
+    exit_env();
+
+    inter_write_func_id=add_func("write",TYPE_INT);
+    func_table[inter_write_func_id].is_def=true;
+    new_env_func_param_dec(inter_write_func_id);
+    add_variable("content",TYPE_INT);
+    exit_env();
+
 }
 
 int join_inter_op_bl(int blk_id,int num,int *k)
 {
     int i;
     int sid=-1,eid=-1;
-    int s1id,e1id;
+    int s1id=-1,e1id=-1;
+    int num1=0;
+    if (blk_id==-1 )
+        printf("receive -1 block_id\n");
+    //if (inter_op_table[blk_id].op_start!=-1)
+    //    printf("multi init block_id %d\n",blk_id);
     for (i=0;i<num;i++)
+        if (k[i]!=-1 && inter_op_table[k[i]].op_start!=-1 && inter_op_table[k[i]].op_end!=-1) k[num1++]=k[i];
+    for (i=0;i<num1;i++)
     {
-        if (k[i]==-1) continue;
-        if (inter_op_table[k[i]].op_start!=-1)
-        {
-            s1id=inter_op_table[k[i]].op_start;
-            if (sid==-1)
-                sid=s1id;
-        }
-        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1)
+        s1id=inter_op_table[k[i]].op_start;
+        if (sid==-1)
+           sid=s1id;
+        if (i!=0)
         {
             eid=inter_op_table[k[i-1]].op_end;
             e1id=eid;
         }
-        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1 && inter_op_table[k[i]].op_start!=-1)
+        if (i!=0 && s1id!=-1 && e1id!=-1)
         {
             inter_op_list[e1id][0]=s1id;
         }
     }
-    if (inter_op_table[k[num-1]].op_end!=-1)
-        eid=inter_op_table[k[num-1]].op_end;
+    if (num1>0)
+        eid=inter_op_table[k[num1-1]].op_end;
+    if (sid==-1 || eid==-1)
+        return -1;
     inter_op_table[blk_id].op_start=sid;
     inter_op_table[blk_id].op_end=eid;
     return blk_id;
 }
 
-int join_inter_op_l(int num,int *k)
+
+int join_inter_op_b(int blk_id,int num,...)
 {
-    int i;
-    int sid=-1,eid=-1;
-    int s1id,e1id;
+    va_list valist;
+    va_start(valist,num);
+    int k[16],i;
     for (i=0;i<num;i++)
     {
-        if (k[i]==-1) continue;
-        if (inter_op_table[k[i]].op_start!=-1)
-        {
-            s1id=inter_op_table[k[i]].op_start;
-            if (sid==-1)
-                sid=s1id;
-        }
-        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1)
-        {
-            eid=inter_op_table[k[i-1]].op_end;
-            e1id=eid;
-        }
-        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1 && inter_op_table[k[i]].op_start!=-1)
-        {
-            inter_op_list[e1id][0]=s1id;
-        }
+        k[i]=va_arg(valist, int);
     }
-    if (inter_op_table[k[num-1]].op_end!=-1)
-        eid=inter_op_table[k[num-1]].op_end;
-    if (sid==-1 || eid==-1) return -1;
-    else return inter_new_op_block(sid,eid);
+    return join_inter_op_bl(blk_id,num,k);
+}
+
+
+int join_inter_op_l(int num,int *k)
+{
+    return join_inter_op_bl(inter_op_table_pointer++,num,k);
 }
 
 int join_inter_op(int num,...)
 {
     va_list valist;
     va_start(valist,num);
-    int k[16];
-    int i;
-    int sid=-1,eid=-1;
-    int s1id,e1id;
+    int k[16],i;
     for (i=0;i<num;i++)
     {
         k[i]=va_arg(valist, int);
-        if (k[i]==-1) continue;
-        if (inter_op_table[k[i]].op_start!=-1)
-        {
-            s1id=inter_op_table[k[i]].op_start;
-            if (sid==-1)
-                sid=s1id;
-        }
-        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1)
-        {
-            eid=inter_op_table[k[i-1]].op_end;
-            e1id=eid;
-        }
-        if (i!=0 && inter_op_table[k[i-1]].op_end!=-1 && inter_op_table[k[i]].op_start!=-1)
-        {
-            inter_op_list[e1id][0]=s1id;
-        }
     }
-    if (inter_op_table[k[num-1]].op_end!=-1)
-        eid=inter_op_table[k[num-1]].op_end;
-    if (sid==-1 || eid==-1) return -1;
-    else return inter_new_op_block(sid,eid);
+    return join_inter_op_bl(inter_op_table_pointer++,num,k);
 }
 
 int inter_new_op_block(int start_id,int end_id)
@@ -210,7 +155,7 @@ void inter_var_name(int var_id, char * name)
     if (inter_op_table[var_id].type==0)
     {
         int rvar_id=inter_op_table[var_id].var_id;
-        sprintf(name,"_t%d",rvar_id);
+        sprintf(name,"t%d",rvar_id);
     }
     else if (inter_op_table[var_id].type==4)
     {
@@ -226,7 +171,7 @@ void inter_label_name(int label_id, char * name)
     if (inter_op_table[label_id].type==1)
     {
         int rlabel_id=inter_op_table[label_id].label_id;
-        sprintf(name,"_l%d",rlabel_id);
+        sprintf(name,"l%d",rlabel_id);
     }
     return ;
 }
@@ -246,7 +191,7 @@ int inter_add_op(char* op)
     inter_op_table[inter_op_table_pointer].op_start=inter_op_list_pointer;
     inter_op_table[inter_op_table_pointer].op_end=inter_op_list_pointer;
     inter_op_table[inter_op_table_pointer].type=3;
-    printf("%s %d %d\n",inter_op_char[inter_op_list_pointer],inter_op_list_pointer,inter_op_table_pointer);
+    //printf("%s %d %d\n",inter_op_char[inter_op_list_pointer],inter_op_list_pointer,inter_op_table_pointer);
     inter_op_list_pointer++;
     return inter_op_table_pointer++;
 }
@@ -320,7 +265,7 @@ int inter_make_op(int inter_op_type,int num, ...)
         case IOP_GOTO:
             label=k[0];
             inter_label_name(label,labels);
-            sprintf(op_str,"GOTO %s :",labels);
+            sprintf(op_str,"GOTO %s",labels);
             op_num=inter_add_op(op_str);
             result_op=op_num;            
             break;
