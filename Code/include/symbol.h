@@ -5,7 +5,7 @@
 
 
 #define MAX_SYMBOLNUM 0xfffff
-
+#define MAX_CONCURRENT_SYNTAX_OP 0x3
 typedef enum SymbolType{
     S_END,
     S_ID, //Identifier
@@ -52,7 +52,7 @@ typedef struct SymbolItem {
     
     int sym_type;
     int sym_affix_type;
-    int action_id;
+    int action_id[MAX_CONCURRENT_SYNTAX_OP];
 
     int compst_func_id;
     int func_id;
@@ -64,6 +64,8 @@ typedef struct SymbolItem {
     bool is_left_val;
 
     int func_ret_type;
+
+    int inter_op_blk_id;
 
     int lineno;
     int cldno; //Child Number

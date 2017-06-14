@@ -40,7 +40,9 @@ enum SyntaxActionType{
     SYN_OP_TYPE(struct_def),
     SYN_OP_TYPE(pass_type),
     SYN_OP_TYPE(exp_struct),
-    SYN_OP_TYPE(func_dec)
+    SYN_OP_TYPE(func_dec),
+
+    SYN_OP_TYPE(inter_op_join),
 };
 
 typedef struct SyntaxActionNode{
@@ -100,5 +102,7 @@ MAKE_OP_FUNC(exp_1_op,ROOT_LAST_ACTION);
 MAKE_OP_FUNC(exp_2_op,ROOT_LAST_ACTION);
 MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION);
 MAKE_OP_FUNC(exp_struct,ROOT_LAST_ACTION);
+
+MAKE_OP_FUNC(inter_op_join,ROOT_LAST_ACTION);
 
 #endif

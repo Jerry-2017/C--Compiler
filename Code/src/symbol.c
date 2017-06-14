@@ -95,11 +95,13 @@ _SI* add_sym_seqx(int sym_type,char *val)
 {
     //printf("*x%s\n ",sym_str(sym_type));
     //symbol_sequence[symbols].sym_str=p_str;
+    int i;
     symbol_sequence[symbols].lineno=yylineno;
     symbol_sequence[symbols].sym_type=sym_type;
     symbol_sequence[symbols].value.pstr=val;
     symbol_sequence[symbols].cldno=0;
-    symbol_sequence[symbols].action_id=-1;
+    for (i=0;i<MAX_CONCURRENT_SYNTAX_OP;i++)
+        symbol_sequence[symbols].action_id[i]=-1;
     symbol_sequence[symbols].reverse_scan=false;
     symbol_sequence[symbols].var_id=-1;
     symbol_sequence[symbols].compst_func_id=-1;
@@ -138,7 +140,9 @@ _SI* add_sym_node(int sym_type, int num, ...)
     //printf("%s ",sym_str);
     //printf("%s\n",sym_str(sym_type));
     _SI *psi,*cpsi=&symbol_sequence[symbols++];  
-    cpsi->action_id=-1;  
+    int i;
+    for (i=0;i<MAX_CONCURRENT_SYNTAX_OP;i++)
+        cpsi->action_id.action_id[i]=-1;
     cpsi->reverse_scan=false;
     cpsi->sym_type=sym_type;
     cpsi->var_id=-1;
@@ -149,7 +153,7 @@ _SI* add_sym_node(int sym_type, int num, ...)
     va_start(valist,num);
     
     cpsi->lc=NULL; cpsi->rc=NULL;
-    int i;
+
     if(num>0)
     {
         psi=va_arg(valist, _SI*);

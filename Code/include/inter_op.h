@@ -37,7 +37,7 @@ enum InterOpType{
 };
 
 typedef struct inter_op_node{
-    int type; //0 VAR 1 LABEL 2 FUNC 3 OP_BLOCK
+    int type; //0 VAR 1 LABEL 2 FUNC 3 OP_BLOCK 4 CONST
     union {
         struct{
             int var_id;
@@ -48,10 +48,13 @@ typedef struct inter_op_node{
         struct{
             int func_table_id;
         };
-        struct{
-            int op_start;
-            int op_end;
-        };
+        struct {
+            int ival;
+        }
+    };
+    struct{
+        int op_start;
+        int op_end;
     };
 
 } _ION;
@@ -82,6 +85,11 @@ extern int inter_var_pointer;
 int inter_new_label();
 
 int inter_new_var();
+
+int join_inter_op(int num,...);
+int join_inter_op_l(int num,int *l);
+int join_inter_op_b(int blk_id,int num,...);
+int join_inter_op_bl(int blk_id,int num,int *l);
 
 int inter_new_op_block(int start_id,int end_id);
 

@@ -25,7 +25,7 @@ void travel(_SI* node,int depth)
     //if (node==root)
     //    printf("Start SDT Processing\n");
     //printf("%s\n",sym_str(node->sym_type));
-    int i=0;
+    int i=0,j;
     _SI* nl[10];
     int cnt=node->cldno;
     if (cnt>0)
@@ -43,7 +43,13 @@ void travel(_SI* node,int depth)
 
     cnt=node->cldno;
     cnodelist=nl;
-    do_syntax_action(node->action_id,ROOT_FIRST_ACTION,node);
+    for (j=0;j<MAX_CONCURRENT_SYNTAX_OP;j++)
+    {
+        if (node->action_id[j]==-1)
+            break;
+        do_syntax_action(node->action_id[j],ROOT_FIRST_ACTION,node);
+    }
+
     if (cnt>0)
     {
         if (node->reverse_scan)
@@ -52,7 +58,12 @@ void travel(_SI* node,int depth)
             for (i=cnt-1;i>=0;i--)
             {
                 cnodelist=nl;
-                do_syntax_action(node->action_id,i+1,node);
+                for (j=0;j<MAX_CONCURRENT_SYNTAX_OP;j++)
+                {
+                    if (node->action_id[j]==-1)
+                        break;
+                    do_syntax_action(node->action_id[j],i+1,node);
+                }
                 travel(nl[i],depth+1);
             }
         }
@@ -62,12 +73,22 @@ void travel(_SI* node,int depth)
             {
                 travel(nl[i],depth+1);
                 cnodelist=nl;
-                do_syntax_action(node->action_id,i+1,node);
+                for (j=0;j<MAX_CONCURRENT_SYNTAX_OP;j++)
+                {
+                    if (node->action_id[j]==-1)
+                        break;
+                    do_syntax_action(node->action_id[j],i+1,node);
+                }
             }
         }
     }
     cnodelist=nl;
-    do_syntax_action(node->action_id,ROOT_LAST_ACTION,node);
+    for (j=0;j<MAX_CONCURRENT_SYNTAX_OP;j++)
+    {
+        if (node->action_id[j]==-1)
+            break;
+        do_syntax_action(node->action_id[j],ROOT_LAST_ACTION,node);
+    }
 }
 
 void travel_syntax_tree(_SI* node,int depth)

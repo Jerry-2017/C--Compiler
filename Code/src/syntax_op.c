@@ -40,12 +40,19 @@ void init_syntax_action()
     REG_OP_FUNC(basic_type,ROOT_LAST_ACTION);
     REG_OP_FUNC(struct_type,ROOT_LAST_ACTION);
     REG_OP_FUNC(struct_def,ROOT_LAST_ACTION);
-    REG_OP_FUNC(pass_type,ROOT_LAST_ACTION)
+    REG_OP_FUNC(pass_type,ROOT_LAST_ACTION);
+    
+    REG_OP_FUNC(inter_op_join,ROOT_LAST_ACTION);
 }
 
 void bind_sym_action(_SI* node,int action_id)
 {
-    node->action_id=action_id;
+    for (i=0;i<MAX_CONCURRENT_SYNTAX_OP;i++)
+        if (node->action_id[i]!=-1)
+        {
+            node->action_id[i]=action_id;
+            break;
+        }
 }
 
 void register_action(int action_id,int action_type,void (*callee) (_SI*) )
@@ -306,10 +313,13 @@ MAKE_OP_FUNC(var_ref,ROOT_LAST_ACTION)
 
 MAKE_OP_FUNC(exp_1_op,ROOT_LAST_ACTION)
 {
+    int tpv1,tpv2,tpv3,tpv4,tpv5,tpv6,tpv7,tpv8;
     if (node->sym_affix_type==0 ) // (Exp)
     {
         node->val_type_id=cnodelist[1]->val_type_id;
         node->is_left_val=false;
+
+        node->inter_op_blk_id=cnodelist[1]->inter_op_blk_id;
     }
     else if (node->sym_affix_type==1) //-Exp
     {
@@ -324,6 +334,12 @@ MAKE_OP_FUNC(exp_1_op,ROOT_LAST_ACTION)
         {
             node->val_type_id=vt_id;
             node->is_left_val=false;
+
+            tpv1=inter_new_var();
+            tpv2=make_inter_const(0);
+            tpv3=make_inter_op(IOP_MINUS,tpv1,tpv2,cnodelist[1]->inter_op_blk_id);
+            join_inter_op_b(tpv1,tpv2,cnodelist[1]->inter_op_blk_id);
+            node->inter_op_blk_id=tpv1;
         }
     }
     else if (node->sym_affix_type==2) //not Exp
@@ -333,21 +349,41 @@ MAKE_OP_FUNC(exp_1_op,ROOT_LAST_ACTION)
             syntax_error(7,cnodelist[1]->lineno,"Type mismatched for operands");
         node->val_type_id=TYPE_INT;
         node->is_left_val=false;
+
+        tpv1=inter_new_var();
+        tpv2=make_inter_const(1);
+        tpv3=make_inter_const(0);
+
+        tpv4=inter_new_label();
+        tpv5=make_inter_op(IOP_ASSIGN,tpv1,tpv3)
+        tpv6=make_inter_op(IOP_IF_EQ,cnodelist[1]->inter_op_blk_id,tpv2,tpv4);
+        tpv7=make_inter_op(IOP_ASSIGN,tpv1,tpv2)
+        tpv8=make_inter_op(IOP_LABEL,tpv4);
+
+        join_inter_op_b(tpv1,tpv5,tpv6,tpv7,tpv8);
+        node->inter_op_blk_id=tpv1;
     }
 }
 
 MAKE_OP_FUNC(basic_type_val,ROOT_LAST_ACTION)
 {
+    int tpv1;
     memcpy(&cnodelist[0]->value,&node->value,sizeof(node->value));
     if (cnodelist[0]->sym_type==S_INT || cnodelist[0]->sym_type==S_INT_10 || cnodelist[0]->sym_type==S_INT_8 || cnodelist[0]->sym_type==S_INT_16)
         node->val_type_id=TYPE_INT;
     else if (cnodelist[0]->sym_type==S_FLOAT)
         node->val_type_id=TYPE_FLOAT;
     node->is_left_val=false;
+
+    tpv1=inter_new_const(node->value);
+    node->inter_op_blk_id=tpv1;
 }
 
 MAKE_OP_FUNC(exp_2_op,ROOT_LAST_ACTION)
 {
+    int tpv1,tpv2,tpv3,tpv4,tpv5,tpv6,tpv7,tpv8,tpv9,tpv10,tpv11,tpv12;
+    _SI * pnode;
+
     if (node->sym_affix_type==0 ) // Exp = Exp
     {
         if (!cnodelist[0]->is_left_val)
@@ -356,6 +392,10 @@ MAKE_OP_FUNC(exp_2_op,ROOT_LAST_ACTION)
             syntax_error(5,cnodelist[0]->lineno,"Type mismatched for assignment.");
         node->val_type_id=cnodelist[0]->val_type_id;
         node->is_left_val=false;
+
+        tpv1=make_inter_op(IOP_ASSIGN,cnodelist[0]->inter_op_blk_id,cnodelist[2]->inter_op_blk_id);
+        join_inter_op_b(tpv1,cnodelist[0]->inter_op_blk_id,cnodelist[2]->inter_op_blk_id,tpv1);
+        nod->inter_op_blk_id=tpv1;
     }
     else if (node->sym_affix_type==1 || node->sym_affix_type==2 ) // Exp and Exp Exp or Exp
     {
@@ -364,6 +404,41 @@ MAKE_OP_FUNC(exp_2_op,ROOT_LAST_ACTION)
             syntax_error(7,cnodelist[1]->lineno,"Type mismatched for operands");
         node->val_type_id=TYPE_INT;
         node->is_left_val=false;
+
+        if (node->sym_affix_type==1)
+        {
+            tpv1=inter_new_var();
+            tpv2=inter_new_label();
+            tpv3=make_inter_const(1);
+            tpv4=make_inter_const(0);
+            tpv5=make_inter_op(IOP_ASSIGN,tpv1,tpv4);
+            tpv6=make_inter_op(IOP_IF_NEQ,cnodelist[0]->inter_op_blk_id,tpv3,tpv2);
+            tpv7=make_inter_op(IOP_IF_NEQ,cnodelist[2]->inter_op_blk_id,tpv3,tpv2);
+            tpv8=make_inter_op(IOP_ASSIGN,tpv1,tpv3);
+            tpv9=make_inter_op(IOP_LABEL,tpv2);
+            join_inter_op_b(tpv1,tpv5,tpv6,tpv7,tpv8,tpv9);
+            nod->inter_op_blk_id=tpv1;
+        }
+        else
+        {
+            tpv1=inter_new_var();
+            tpv2=inter_new_label();
+            tpv3=inter_new_label();
+            tpv4=make_inter_const(1);
+            tpv5=make_inter_const(0);
+
+            tpv6=make_inter_op(IOP_ASSIGN,tpv1,tpv5);
+            tpv7=make_inter_op(IOP_IF_EQ,cnodelist[0]->inter_op_blk_id,tpv4,tpv2);
+            tpv8=make_inter_op(IOP_IF_EQ,cnodelist[2]->inter_op_blk_id,tpv4,tpv2);
+            tpv9=make_inter_op(IOP_GOTO,tpv3);
+            tpv10=make_inter_label(tpv2);            
+            tpv11=make_inter_op(IOP_ASSIGN,tpv1,tpv4);
+            tpv12=make_inter_label(tpv3);            
+
+            join_inter_op_b(tpv1,tpv6,tpv7,tpv8,tpv9,tpv10,tpv11,tpv12);
+            nod->inter_op_blk_id=tpv1;            
+        }
+
     }
     else if (node->sym_affix_type==3 || node->sym_affix_type==4 || node->sym_affix_type==5 || node->sym_affix_type==6 || node->sym_affix_type==7)
     {
@@ -373,8 +448,70 @@ MAKE_OP_FUNC(exp_2_op,ROOT_LAST_ACTION)
         {
             syntax_error(7,cnodelist[1]->lineno,"Type mismatched for operands");
         }
+
         node->val_type_id=cnodelist[0]->val_type_id;
         node->is_left_val=false;
+
+        if (node->sym_affix_type==3 || node->sym_affix_type==4 || node->sym_affix_type==5 || node->sym_affix_type==6)
+        {
+            switch (node->sym_affix_type)
+            {
+                case 3:
+                    tpv1=IOP_ADD;
+                    break;
+                case 4:
+                    tpv1=IOP_MINUS;
+                    break;
+                case 5:
+                    tpv1=IOP_MUL;
+                    break;
+                case 6:
+                    tpv1=IOP_DIV;
+                    break;
+            }
+            tpv2=inter_new_var();    
+            tpv3=inter_make_op(tpv1,tpv2,cnodelist[0]->inter_op_blk_id,cnodelist[0]->inter_op_blk_id);
+            join_inter_op_b(tpv2,tpv3);
+            node->inter_op_blk_id=tpv2;
+        }
+        else
+        {
+            pnode=get_nth_child(cnodelist[1],0);
+            switch (pnode->sym_type)
+            {
+                case BIGGER:
+                    tpv1=IOP_IF_LEQ;
+                    break;
+                case BIGGEREQUAL:
+                    tpv1=IOP_IF_L;
+                    break;
+                case EQUAL:
+                    tpv1=IOP_IF_NEQ;
+                    break;
+                case LESS:
+                    tpv1=IOP_IF_GEQ;
+                    break;
+                case LESSEQUAL:
+                    tpv1=IOP_IF_G;
+                    break;
+                case NOTEQUAL:
+                    tpv1=IOP_IF_EQ;
+            }
+            
+            tpv2=inter_new_var();
+            tpv3=inter_new_label();
+
+            tpv4=make_inter_const(1);
+            tpv5=make_inter_const(0);
+
+            tpv6=make_inter_op(IOP_ASSIGN,tpv2,tpv5)
+            tpv7=make_inter_op(tpv1,cnodelist[0]->inter_op_blk_id,cnodelist[2]->inter_op_blk_id,tpv3);
+            tpv8=make_inter_op(IOP_ASSIGN,tpv2,tpv4)
+            tpv9=make_inter_op(IOP_LABEL,tpv3)
+
+            join_inter_op_b(tpv2,tpv6,tpv7,tpv8,tpv9);
+            node->inter_op_blk_id=tpv2;
+        }
     }
 }
 
@@ -513,3 +650,14 @@ MAKE_OP_FUNC(exp_struct,ROOT_LAST_ACTION){
     node->is_left_val=true;
 }
 
+MAKE_OP_FUNC(inter_op_join,ROOT_LAST_ACTION){
+
+    int n=node->cldno;
+    int a[16],al=0,i;
+    for (i=0;i<n;i++)
+    {
+        if (cnodelist[i]->inter_op_blk_id!=-1)
+            a[al++]=cnodelist[i]->inter_op_blk_id;
+    }
+    node->inter_op_blk_id=join_inter_op_l(al,a);   
+}
