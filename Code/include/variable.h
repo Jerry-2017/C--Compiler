@@ -42,6 +42,7 @@ int stack_env[MAX_ENV_STACK][2]; // Mode Attribute
 int block_id;
 int fpdec_cnt;
 int se_cnt;
+int inter_func_param_mode;
 
 #else
 
@@ -50,6 +51,7 @@ extern int vt_cnt;
 extern int stack_env[MAX_ENV_STACK][2];
 extern int se_cnt;
 extern int block_id;
+extern int inter_func_param_mode;
 
 #endif
 

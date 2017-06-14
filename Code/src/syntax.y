@@ -53,8 +53,8 @@ ExtDefList : ExtDef ExtDefList { $$=add_sym_node(S_EXTDEFLIST,2,$1,$2); bind_sym
 
 ExtDef : Specifer ExtDecList SEMI { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(pass_def)); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); }
         |StructSpecifer SEMI { $$=add_sym_node(S_EXTDEF,2,$1,$2); }
-        |Specifer FunDec SEMI { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(func_dec)); }
-        |Specifer FunDec Compst { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(func_def)); bind_sym_action($$,SYN_OP_TYPE(inter_op_join));}
+        |Specifer FunDec SEMI { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3);  bind_sym_action($$,SYN_OP_TYPE(func_dec)); }
+        |Specifer FunDec Compst { $$=add_sym_node(S_EXTDEF,3,$1,$2,$3);  bind_sym_action($$,SYN_OP_TYPE(func_def));}
         ;
 
 ExtDecList : VarDec { $$=add_sym_node(S_EXTDECLIST,1,$1); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); }
@@ -78,13 +78,13 @@ Tag:ID { $$=add_sym_node(S_TAG,1,$1); }
 VarDec:ID { $$=add_sym_node(S_VARDEC,1,$1); bind_sym_action($$,SYN_OP_TYPE(var_def)); }
         | VarDec LB Int RB { $$=add_sym_node(S_VARDEC,4,$1,$2,$3,$4); $$->reverse_scan=true; bind_sym_action($$,SYN_OP_TYPE(array_def)); }
         ;
-FunDec:ID LP VarList RP { $$=add_sym_node(S_FUNDEC,4,$1,$2,$3,$4); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(func_arg_def)); }
-        |ID LP RP { $$=add_sym_node(S_FUNDEC,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(func_arg_def)); }
+FunDec:ID LP VarList RP { $$=add_sym_node(S_FUNDEC,4,$1,$2,$3,$4); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(func_arg_def)); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); }
+        |ID LP RP { $$=add_sym_node(S_FUNDEC,3,$1,$2,$3); $$->sym_affix_type=1; }
         ;
-VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); } // no need to add action
-        |ParamDec { $$=add_sym_node(S_VARLIST,1,$1);  } // no need to add action
+VarList:ParamDec COMMA VarList { $$=add_sym_node(S_VARLIST,3,$1,$2,$3); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); } // no need to add action
+        |ParamDec { $$=add_sym_node(S_VARLIST,1,$1); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); } // no need to add action
         ;
-ParamDec:Specifer VarDec { $$=add_sym_node(S_PARAMDEC,2,$1,$2); bind_sym_action($$,SYN_OP_TYPE(pass_def)); }
+ParamDec:Specifer VarDec { $$=add_sym_node(S_PARAMDEC,2,$1,$2); bind_sym_action($$,SYN_OP_TYPE(pass_def)); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); }
         ;
 
 

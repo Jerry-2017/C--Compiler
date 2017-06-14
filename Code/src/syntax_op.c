@@ -41,6 +41,7 @@ void init_syntax_action()
     REG_OP_FUNC(struct_type,ROOT_LAST_ACTION);
     REG_OP_FUNC(struct_def,ROOT_LAST_ACTION);
     REG_OP_FUNC(pass_type,ROOT_LAST_ACTION);
+    REG_OP_FUNC(func_def,ROOT_LAST_ACTION);
     
     REG_OP_FUNC(inter_op_join,ROOT_LAST_ACTION);
 }
@@ -221,12 +222,14 @@ MAKE_OP_FUNC(func_arg_def,1)
 MAKE_OP_FUNC(func_def,1)
 {
     cnodelist[1]->val_type_id=cnodelist[0]->val_type_id;
+    inter_func_param_mode=true;
     cnodelist[1]->context_relate_id=0;
 }
 
 MAKE_OP_FUNC(func_dec,1)
 {
     cnodelist[1]->val_type_id=cnodelist[0]->val_type_id;
+    cnodelist[1]->sym_affix_type=node->sym_affix_type;
     cnodelist[1]->context_relate_id=1;
 }
 
@@ -234,8 +237,10 @@ MAKE_OP_FUNC(func_def,2)
 {
     cnodelist[2]->func_id=cnodelist[1]->func_id;
     cnodelist[2]->compst_func_id=cnodelist[1]->func_id;
+    inter_func_param_mode=false;
     //printf("**%d**",cnodelist[2]->func_id);
 }
+
 
 MAKE_OP_FUNC(array_def,ROOT_LAST_ACTION)
 {
@@ -258,6 +263,9 @@ MAKE_OP_FUNC(func_arg_def,ROOT_LAST_ACTION)
         syntax_error(19,cnodelist[0]->lineno,tp);       
     }
     exit_env();
+
+    if (node->sym_affix_type==0)
+        node->inter_op_blk_id=cnodelist[2]->inter_op_blk_id;
 }
 
 MAKE_OP_FUNC(pass_var_dec,ROOT_LAST_ACTION)
@@ -281,9 +289,21 @@ MAKE_OP_FUNC(pass_var_dec,ROOT_LAST_ACTION)
     
 }
 
+MAKE_OP_FUNC(func_def,ROOT_LAST_ACTION)
+{
+    int tpv1,tpv2,tpv3,tpv4,tpv5;
+    tpv1=inter_get_func(cnodelist[2]->func_id);
+    tpv2=inter_make_op(IOP_FUNC,1,tpv1);
+    tpv3=cnodelist[1]->inter_op_blk_id;
+    tpv4=cnodelist[2]->inter_op_blk_id;
+    tpv5=join_inter_op(3,tpv2,tpv3,tpv4);
+    node->inter_op_blk_id=tpv5;
+}
+
 MAKE_OP_FUNC(var_def,ROOT_LAST_ACTION)
 {
     char *vname=cnodelist[0]->value.pstr;
+    int tpv1;
     //printf("variable %s size %d var_id %d\n",vname,type_table[node->val_type_id].size,get_variable(vname));
     if (get_variable(vname)!=-1)
     {
@@ -303,8 +323,14 @@ MAKE_OP_FUNC(var_def,ROOT_LAST_ACTION)
     else
     {
         node->var_id=add_variable(vname,node->val_type_id);
-
-        node->inter_op_blk_id=inter_get_variable(node->var_id);
+        
+        if (inter_func_param_mode==true)
+        {
+            tpv1=inter_get_variable(node->var_id);
+            node->inter_op_blk_id=inter_make_op(IOP_PARAM,1,tpv1);
+        }
+        else
+            node->inter_op_blk_id=inter_get_variable(node->var_id);
     }
 }
 

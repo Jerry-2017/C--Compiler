@@ -8,6 +8,8 @@ void init_inter_op()
     inter_op_table_pointer=0;
     inter_var_pointer=0;
     inter_label_pointer=0;
+    inter_read_func_id=add_func("read",TYPE_INT);
+    inter_write_func_id=add_func("write",TYPE_INT);
 }
 
 int join_inter_op_b(int blk_id,int num,...)
@@ -232,7 +234,7 @@ void inter_label_name(int label_id, char * name)
 void inter_func_name(int func_id, char *name)
 {
     int rfunc_id=inter_op_table[func_id].func_table_id;
-    name=func_table[rfunc_id].name;
+    strcpy(name,func_table[rfunc_id].name);
     return ;
 }
 
@@ -244,7 +246,7 @@ int inter_add_op(char* op)
     inter_op_table[inter_op_table_pointer].op_start=inter_op_list_pointer;
     inter_op_table[inter_op_table_pointer].op_end=inter_op_list_pointer;
     inter_op_table[inter_op_table_pointer].type=3;
-    //printf("%s %d %d\n",inter_op_char[inter_op_list_pointer],inter_op_list_pointer,inter_op_table_pointer);
+    printf("%s %d %d\n",inter_op_char[inter_op_list_pointer],inter_op_list_pointer,inter_op_table_pointer);
     inter_op_list_pointer++;
     return inter_op_table_pointer++;
 }

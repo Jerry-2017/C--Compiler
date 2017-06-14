@@ -71,6 +71,9 @@ int inter_op_list_pointer;
 int inter_op_table_pointer;
 int inter_label_pointer;
 int inter_var_pointer;
+
+int inter_read_func_id,inter_write_func_id;
+
 #else
 
 extern int inter_op_list[MAX_INTER_OP][2];
@@ -82,6 +85,7 @@ extern int inter_op_table_pointer;
 extern int inter_label_pointer;
 extern int inter_var_pointer;
 
+extern int inter_read_func_id,inter_write_func_id;
 #endif
 void init_inter_op();
 
@@ -96,6 +100,7 @@ int join_inter_op_bl(int blk_id,int num,int *k);
 
 int inter_new_op_block(int start_id,int end_id);
 
+int inter_get_func(int func_id);
 int inter_get_variable(int var_id);
 
 void inter_label_name(int label_id,char *name);

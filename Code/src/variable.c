@@ -7,6 +7,7 @@ void init_variable()
     vt_cnt=0;
     se_cnt=-1;
     block_id=0;
+    inter_func_param_mode=false;
     new_env_block();
 }
 
