@@ -40,6 +40,7 @@ void new_env_struct_def(int structid)
     se_cnt++;
     stack_env[se_cnt][0]=ENV_STRUCT_DEF;
     stack_env[se_cnt][1]=structid;
+    type_table[structid].size=0;
     type_table[structid]._struct.elempos=-1;
     type_table[structid]._struct.elemsize=0;
     type_table[structid]._struct.lastpos=-1;
@@ -86,6 +87,12 @@ int add_variable(char *var_name,int type_id)
         case ENV_FUNC_PARM_DEC:
         {
             int fid=stack_env[se_cnt][1];
+            if (type_table[type_id].type==STRUCT_TYPE)
+            {
+                char tp[0x100];
+                sprintf(tp,"Code contains variables or parameters of structure type");
+                syntax_error(-1,cnodelist[0]->lineno,tp);
+            }
             int base=func_table[fid].arg_pos;
             var_table[vt_cnt].env_type=ENV_FUNC_PARM_DEC;
             var_table[vt_cnt].env_id=fid;
@@ -125,6 +132,7 @@ int add_variable(char *var_name,int type_id)
             var_table[vt_cnt].name=var_name;
             var_table[vt_cnt].var_type=type_id;
             var_table[vt_cnt].next_var=-1;
+            type_table[sid].size+=type_table[type_id].size;
             type_table[sid]._struct.elemsize+=1;
             return vt_cnt++;
         }

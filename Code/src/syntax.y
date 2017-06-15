@@ -185,6 +185,10 @@ int main(int argc, char** argv)
         destruct();
     }
     printf("\n");
-    inter_output(root->inter_op_blk_id);
+    if (!errorrec)
+    {
+        inter_output(root->inter_op_blk_id);
+        printf("\n");
+    }
     return 0;
 }
