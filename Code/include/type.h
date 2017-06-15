@@ -51,7 +51,7 @@ _FI func_table[MAX_FUNC_NUM];
 int ft_cnt;
 
 _TI type_table[MAX_TYPENUM];
-int type_table_cnt;
+//int type_table_cnt;
 
 int TYPE_INT;
 int TYPE_FLOAT;
@@ -68,14 +68,9 @@ extern bool func_dec_cons;
 extern _FI func_table[MAX_FUNC_NUM];
 extern int ft_cnt;
 
-extern _VI func_arg_table[MAX_FUNC_ARG_DEC];
-extern int farg_tabel_cnt;
-
 extern _TI type_table[MAX_TYPENUM];
-extern int type_table_cnt;
+//extern int type_table_cnt;
 
-extern _VI struct_arg_table[MAX_STRUCT_VAR_DEF];
-extern int sarg_table_cnt;
 
 #endif
 

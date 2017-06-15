@@ -120,7 +120,8 @@ MAKE_OP_FUNC(pass_compst,ROOT_FIRST_ACTION)
         for (i=0;i<cnt;i++)
         {
             //printf("new var %s\n",var_table[base+i].name);
-            add_variable(var_table[base+i].name,var_table[base+i].var_type);
+            int p=add_variable(var_table[base+i].name,var_table[base+i].var_type);
+            var_table[p].inter_var_id=var_table[base+i].inter_var_id;
         }
     }
     cnodelist[0]->func_id=node->func_id;
@@ -245,6 +246,8 @@ MAKE_OP_FUNC(func_def,2)
 MAKE_OP_FUNC(array_def,ROOT_LAST_ACTION)
 {
     node->val_type_id=cnodelist[0]->val_type_id;
+    node->var_id=cnodelist[0]->var_id;
+    node->inter_op_blk_id=cnodelist[0]->inter_op_blk_id;
 }
 
 
@@ -303,7 +306,7 @@ MAKE_OP_FUNC(func_def,ROOT_LAST_ACTION)
 MAKE_OP_FUNC(var_def,ROOT_LAST_ACTION)
 {
     char *vname=cnodelist[0]->value.pstr;
-    int tpv1;
+    int tpv1,tpv2,tpv3,tpv4,tpv5;
     //printf("variable %s size %d var_id %d\n",vname,type_table[node->val_type_id].size,get_variable(vname));
     if (get_variable(vname)!=-1)
     {
@@ -330,7 +333,21 @@ MAKE_OP_FUNC(var_def,ROOT_LAST_ACTION)
             node->inter_op_blk_id=inter_make_op(IOP_PARAM,1,tpv1);
         }
         else
-            node->inter_op_blk_id=inter_get_variable(node->var_id);
+        {
+            tpv1=node->var_id;
+            tpv2=var_table[tpv1].var_type;
+            tpv3=inter_get_variable(tpv1);
+            if (tpv2!=TYPE_INT)
+            {
+                //printf("**********");
+                tpv4=inter_new_const_int(type_table[tpv2].size);
+                tpv5=inter_make_op(IOP_DEC,2,tpv3,tpv4);
+                //inter_blk_add_var_ref(tpv5,tpv3);
+                node->inter_op_blk_id=tpv5;
+            }
+            else
+                node->inter_op_blk_id=tpv3;
+        }
     }
 }
 
@@ -448,11 +465,22 @@ MAKE_OP_FUNC(exp_2_op,ROOT_LAST_ACTION)
         node->val_type_id=cnodelist[0]->val_type_id;
         node->is_left_val=false;
 
-        tpv1=cnodelist[0]->inter_op_blk_id;
-        tpv2=cnodelist[2]->inter_op_blk_id;
-        tpv3=inter_make_op(IOP_ASSIGN,2,tpv1,tpv2);
-        tpv4=join_inter_op(2,tpv2,tpv3);
-        node->inter_op_blk_id=tpv4;
+        if (cnodelist[0]->inter_op_blk_id_lv==-1)
+        {
+            tpv1=cnodelist[0]->inter_op_blk_id;
+            tpv2=cnodelist[2]->inter_op_blk_id;
+            tpv3=inter_make_op(IOP_ASSIGN,2,tpv1,tpv2);
+            tpv4=join_inter_op(3,tpv1,tpv2,tpv3);
+            node->inter_op_blk_id=tpv4;
+        }
+        else
+        {
+            tpv1=cnodelist[0]->inter_op_blk_id_lv;
+            tpv2=cnodelist[2]->inter_op_blk_id;
+            tpv3=inter_make_op(IOP_LSTAR,2,tpv1,tpv2);
+            tpv4=join_inter_op(3,tpv1,tpv2,tpv3);
+            node->inter_op_blk_id=tpv4;
+        }
     }
     else if (node->sym_affix_type==1 || node->sym_affix_type==2 ) // Exp and Exp Exp or Exp
     {
@@ -619,6 +647,9 @@ MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION)
             _SI* expnode=get_nth_child(arg_node,1);
             if (expnode->val_type_id!=var_table[base+i].var_type)
             {
+                tpv1=expnode->val_type_id;
+                tpv2=var_table[base+i].var_type;
+                //printf("diff val type %d %d %d ,%d %d %d\n",tpv1,type_table[tpv1]._array.elemtype,type_table[tpv1]._array.elemsize,tpv2,type_table[tpv2]._array.elemtype,type_table[tpv2]._array.elemsize);
                 f=false;
                 break;
             }
@@ -675,6 +706,7 @@ MAKE_OP_FUNC(exp_func_call,ROOT_LAST_ACTION)
 MAKE_OP_FUNC(exp_arr,ROOT_LAST_ACTION)
 {
     int vid=cnodelist[0]->val_type_id;
+    int tpv1,tpv2,tpv3,tpv4,tpv5,tpv6,tpv7,tpv8,tpv9;
     if (type_table[vid].type!=1)
     {
         syntax_error(10,cnodelist[0]->lineno,"it is not an array");
@@ -683,10 +715,34 @@ MAKE_OP_FUNC(exp_arr,ROOT_LAST_ACTION)
     else
     {
         int index_type=cnodelist[2]->val_type_id;
-        if (index_type!=TYPE_INT)
-            syntax_error(12,cnodelist[0]->lineno,"array index is not an integer");
         node->val_type_id=type_table[vid]._array.elemtype;
         node->is_left_val=true;
+        if (index_type!=TYPE_INT)
+            syntax_error(12,cnodelist[0]->lineno,"array index is not an integer");
+        else //Exp LB Exp RB 
+        {
+            tpv1=inter_new_var();
+            tpv2=type_table[vid]._array.elemtype;
+            tpv2=inter_new_const_int(type_table[tpv2].size);
+
+            tpv3=cnodelist[0]->inter_op_blk_id;
+            tpv4=cnodelist[2]->inter_op_blk_id;
+            tpv5=inter_make_op(IOP_MUL,3,tpv1,tpv2,tpv4);
+            tpv6=inter_make_op(IOP_ADD,3,tpv1,tpv3,tpv1);
+            if (type_table[vid]._array.elemtype!=TYPE_INT)
+                join_inter_op_b(tpv1,4,tpv3,tpv4,tpv5,tpv6);
+            else
+            {
+                tpv7=inter_make_op(IOP_RSTAR,2,tpv1,tpv1);
+                tpv8=join_inter_op(4,tpv3,tpv4,tpv5,tpv6);
+                tpv9=join_inter_op(2,tpv8,tpv7);
+                inter_blk_add_var_ref(tpv8,tpv1);
+                inter_blk_add_var_ref(tpv9,tpv1);
+                tpv1=tpv9;
+                node->inter_op_blk_id_lv=tpv8;                        
+            }
+            node->inter_op_blk_id=tpv1;
+        }
     }
 }
 
@@ -758,7 +814,7 @@ MAKE_OP_FUNC(stmt,ROOT_LAST_ACTION)
             tpv9=inter_make_op(IOP_LABEL,1,tpv2);
 
             tpv10=join_inter_op(7,tpv3,tpv4,tpv5,tpv6,tpv7,tpv8,tpv9);
-            node->inter_op_blk_id=tpv3;
+            node->inter_op_blk_id=tpv10;
             break;                        
     }
     //printf("node affix type %d\n",node->sym_affix_type);

@@ -5,27 +5,25 @@
 
 int check_dup_type(_TI* pti)
 {
-    int ret;
-    if (pti->type==0)
+    int ret=-1,i;
+    if (pti->type==BASIC_TYPE)
     {
-        for (int i=0;i<ttcnt;i++)
+        for (i=0;i<ttcnt;i++)
             if (type_table[i].type==0 && strcmp(pti->name,type_table[i].name)==0)
             {
                 ret=i;
                 break;
             }
-        ret=-1;
     }
-    else if (pti->type==1)
+    else if (pti->type==ARRAY_TYPE)
     {
-        for (int i=0;i<ttcnt;i++)
+        for (i=0;i<ttcnt;i++)
             if (type_table[i].type==1 && pti->_array.elemtype==type_table[i]._array.elemtype &&
                      pti->_array.elemsize==type_table[i]._array.elemsize)
             {
                 ret=i;
                 break;
             }
-        ret=-1;
     }
     else if (pti->type==2)
     {

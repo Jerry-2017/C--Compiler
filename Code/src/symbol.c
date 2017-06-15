@@ -99,6 +99,8 @@ _SI* add_sym_seqx(int sym_type,char *val)
     symbol_sequence[symbols].lineno=yylineno;
     symbol_sequence[symbols].sym_type=sym_type;
     symbol_sequence[symbols].value.pstr=val;
+    symbol_sequence[symbols].inter_op_blk_id_lv=-1;
+    symbol_sequence[symbols].inter_op_blk_id=-1;
     symbol_sequence[symbols].cldno=0;
     for (i=0;i<MAX_CONCURRENT_SYNTAX_OP;i++)
         symbol_sequence[symbols].action_id[i]=-1;
@@ -145,6 +147,8 @@ _SI* add_sym_node(int sym_type, int num, ...)
         cpsi->action_id[i]=-1;
     cpsi->reverse_scan=false;
     cpsi->sym_type=sym_type;
+    cpsi->inter_op_blk_id_lv=-1;
+    cpsi->inter_op_blk_id=-1;
     cpsi->var_id=-1;
     cpsi->func_id=-1;
     cpsi->compst_func_id=-1;

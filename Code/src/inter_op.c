@@ -349,6 +349,16 @@ int inter_make_op(int inter_op_type,int num, ...)
             result_op=op_num;
             break;
 
+        case IOP_DEC:
+            var_id1=k[0];
+            var_id2=k[1];
+            inter_var_name(var_id1,vars1);
+            sprintf(vars2,"%d",inter_op_table[var_id2].ival);
+            sprintf(op_str,"DEC %s %s",vars1,vars2);
+            op_num=inter_add_op(op_str);
+            result_op=op_num;
+            break;    
+
         case IOP_ASSIGN:
             var_id1=k[0];
             var_id2=k[1];
@@ -396,6 +406,12 @@ int inter_make_op(int inter_op_type,int num, ...)
     }
     return result_op;
 }   
+
+void inter_blk_add_var_ref(int dst_blkid,int src_blkid)
+{
+    inter_op_table[dst_blkid].var_id=inter_op_table[src_blkid].var_id;
+    inter_op_table[dst_blkid].type=0;
+}
 
 void inter_output(int inter_root)
 {

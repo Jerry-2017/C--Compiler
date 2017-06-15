@@ -60,12 +60,13 @@ typedef struct SymbolItem {
     int context_relate_id;
 
     int val_type_id;
-    int var_id;
+    int var_id; 
     bool is_left_val;
 
     int func_ret_type;
 
     int inter_op_blk_id;
+    int inter_op_blk_id_lv;//left value id
 
     int lineno;
     int cldno; //Child Number

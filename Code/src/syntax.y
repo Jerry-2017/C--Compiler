@@ -111,7 +111,7 @@ Def:Specifer DecList SEMI
 DecList:Dec { $$=add_sym_node(S_DECLIST,1,$1); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(pass_declist)); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); }
         |Dec COMMA DecList { $$=add_sym_node(S_DECLIST,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(pass_declist)); bind_sym_action($$,SYN_OP_TYPE(inter_op_join)); }
         ;
-Dec:VarDec { $$=add_sym_node(S_DEC,1,$1); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(pass_var_dec)); } 
+Dec:VarDec { $$=add_sym_node(S_DEC,1,$1); $$->sym_affix_type=0; bind_sym_action($$,SYN_OP_TYPE(pass_var_dec)); bind_sym_action($$,SYN_OP_TYPE(inter_op_join));} 
         |VarDec ASSIGNOP Exp { $$=add_sym_node(S_DEC,3,$1,$2,$3); $$->sym_affix_type=1; bind_sym_action($$,SYN_OP_TYPE(pass_var_dec)); }
         ;
 

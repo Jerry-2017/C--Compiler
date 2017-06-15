@@ -25,6 +25,7 @@ enum InterOpType{
     IOP_ARG,
     IOP_PARAM,
     IOP_RETURN,
+    IOP_DEC,
 
     IOP_ASSIGN,
     IOP_ADD,
@@ -37,7 +38,7 @@ enum InterOpType{
 };
 
 typedef struct inter_op_node{
-    int type; //0 VAR 1 LABEL 2 FUNC 3 OP_BLOCK 4 CONST
+    int type; //0 VAR 1 LABEL 2 FUNC 3 OP_BLOCK 4 CONST 5 POINTER
     union {
         struct{
             int var_id;
@@ -108,6 +109,8 @@ void inter_func_name(int func_id, char *name);
 void inter_var_name(int var_id,char *name);
 
 int inter_add_op(char* op);
+
+void inter_blk_add_var_ref(int dst_blkid,int src_blkid);
 
 int inter_make_op(int inter_op_type,int num, ...);
 
